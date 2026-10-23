@@ -48,7 +48,7 @@
     </ul>
 
     <footer
-      class="flex shrink-0 items-center gap-3 text-[0.7rem] text-gray-500 dark:text-gray-400"
+      class="mt-auto flex shrink-0 items-center gap-3 text-[0.7rem] text-gray-500 dark:text-gray-400"
     >
       <button class="ml-auto cursor-pointer transition hover:text-teal-600" @click="onOpenConsole">
         控制台
