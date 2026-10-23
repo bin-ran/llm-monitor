@@ -1,12 +1,16 @@
 # LLM Monitor · Logo 设计说明
 
 设计来源：Figma 文件 `uW3sGV9Gf6O2l5vI4xkEpj` → 页面 **Logo** → 分区
-`06 · LLM-MONITOR · CONCEPTS`（概念）与 `07 · LLM-MONITOR · FINAL`（成品）。
+`06 · LLM-MONITOR · CONCEPTS`（概念 V1）、`07 · LLM-MONITOR · FINAL`（成品）、
+`08 · LLM-MONITOR · CONCEPTS V2`（概念 V2）。
 
-> 设计模型署名：**MiniMax-M3.1-Flash**（pi coding agent / `cc-switch-mini-max`），已在 Figma 分区底部标注。
+> 设计模型署名（逐批次）：第一批 + 成品 **MiniMax-M3.1-Flash**（pi coding agent / `cc-switch-mini-max`）；
+> 第二批 V2 **GLM（glm-5.3-flash）**（pi coding agent / `cc-switch-zhipu-glm`）。已在 Figma 各分区底部标注。
 > 方案由 AI 生成，最终取舍需人工确认。
 
 ## 概念方案
+
+### 第一批（V1 · 徽章语族）
 
 | 方案 | 意象 | 文件 |
 | --- | --- | --- |
@@ -17,7 +21,20 @@
 | E · Gauge | 余额仪表盘 + 指针 | `concepts/e-gauge.svg` |
 | F · Balance Bars | 多平台余额柱阵，末位为告警色 | `concepts/f-balance-bars.svg` |
 
-## 采用方案：A · Pulse
+### 第二批（V2 · 换视觉语族，GLM · glm-5.3-flash）
+
+| 方案 | 意象 | 文件 |
+| --- | --- | --- |
+| G · Sparkline | 应用窗口 + 走势线，桌面监控面板 | `concepts-v2/g-sparkline.svg` |
+| H · Converge | 三条来源线汇入监测节点 = 多平台聚合 | `concepts-v2/h-converge.svg` |
+| J · Orbital | 监测核 + 轨道平台点（原子感） | `concepts-v2/j-orbital.svg` |
+| K · Sticker | 新粗野主义贴纸风：粗描边 + 硬投影 | `concepts-v2/k-sticker.svg` |
+| L · Ring | 极简进度环，3/4 主色 + 1/4 告警色 | `concepts-v2/l-ring.svg` |
+| M · Pixel | 8-bit 像素脉冲，终端/极客气质 | `concepts-v2/m-pixel.svg` |
+| N · Terminal | 终端提示符 `>_`，开发者工具身份 | `concepts-v2/n-terminal.svg` |
+| O · Shield | 盾牌 + 脉冲，API Key 本地加密的安全感 | `concepts-v2/o-shield.svg` |
+
+## 采用方案：A · Pulse（第一批；第二批备选 G / H / O）
 
 青色渐变圆角方块 + 白色监控波形 + 桃色数据点：
 
