@@ -1,23 +1,23 @@
 <template>
   <section
-    class="flex flex-col gap-3 rounded-xl border border-gray-200 bg-white p-4 shadow-sm transition hover:shadow-md dark:border-gray-800 dark:bg-gray-900"
+    class="flex flex-col gap-2 rounded-xl border border-gray-200 bg-white p-3 shadow-sm transition hover:shadow-md dark:border-gray-800 dark:bg-gray-900"
   >
     <header class="flex items-center gap-2">
-      <span class="h-3 w-3 shrink-0 rounded-full" :style="{ backgroundColor: card.accent }" />
-      <h2 class="text-base font-semibold text-gray-800 dark:text-gray-100">{{ card.label }}</h2>
+      <span class="h-2.5 w-2.5 shrink-0 rounded-full" :style="{ backgroundColor: card.accent }" />
+      <h2 class="text-sm font-semibold text-gray-800 dark:text-gray-100">{{ card.label }}</h2>
       <span
-        class="ml-auto rounded-full px-2 py-0.5 text-xs font-medium"
+        class="ml-auto rounded-full px-1.5 py-0.5 text-[0.65rem] font-medium"
         :class="statusClass"
       >
         {{ statusText }}
       </span>
     </header>
 
-    <div class="flex items-end gap-2">
-      <span class="text-3xl font-semibold tracking-tight text-gray-900 dark:text-gray-50">
+    <div class="flex items-end gap-1.5">
+      <span class="text-2xl font-semibold tracking-tight text-gray-900 dark:text-gray-50">
         {{ amountText }}
       </span>
-      <span class="pb-1 text-sm text-gray-500 dark:text-gray-400">{{ currencyText }}</span>
+      <span class="pb-0.5 text-xs text-gray-500 dark:text-gray-400">{{ currencyText }}</span>
     </div>
 
     <div v-if="card.result.status === PROVIDER_STATUS.ERROR" class="text-xs text-red-500">
@@ -28,18 +28,18 @@
       未配置 API Key，无法查询余额
     </div>
 
-    <ul v-if="details.length > 0" class="flex flex-col gap-1">
+    <ul v-if="details.length > 0" class="flex flex-col gap-0.5">
       <li
         v-for="detail in details"
         :key="detail.label"
-        class="flex justify-between text-xs text-gray-500 dark:text-gray-400"
+        class="flex justify-between text-[0.7rem] text-gray-500 dark:text-gray-400"
       >
         <span>{{ detail.label }}</span>
         <span class="font-medium text-gray-700 dark:text-gray-300">{{ detail.value }}</span>
       </li>
     </ul>
 
-    <footer class="mt-auto flex items-center gap-3 pt-1 text-xs text-gray-500 dark:text-gray-400">
+    <footer class="mt-auto flex items-center gap-3 pt-0.5 text-[0.7rem] text-gray-500 dark:text-gray-400">
       <button class="ml-auto cursor-pointer transition hover:text-teal-600" @click="onOpenConsole">控制台</button>
     </footer>
   </section>

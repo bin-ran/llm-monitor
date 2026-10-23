@@ -1,29 +1,29 @@
 <template>
-  <div class="mx-auto flex w-full max-w-5xl flex-col gap-4 p-4">
-    <header class="flex flex-wrap items-center gap-3">
-      <img class="h-9 w-9 shrink-0 rounded-lg" src="/logo.svg" alt="LLM Monitor" />
+  <div class="mx-auto flex w-full max-w-4xl flex-col gap-3 p-3">
+    <header class="flex flex-wrap items-center gap-2">
+      <img class="h-8 w-8 shrink-0 rounded-lg" src="/logo.svg" alt="LLM Monitor" />
       <div>
-        <h1 class="text-xl font-semibold text-gray-900 dark:text-gray-50">LLM Monitor</h1>
-        <p class="text-xs text-gray-500 dark:text-gray-400">
+        <h1 class="text-lg font-semibold text-gray-900 dark:text-gray-50">LLM Monitor</h1>
+        <p class="text-[0.7rem] text-gray-500 dark:text-gray-400">
           已配置 {{ store.configuredCount }} / {{ store.cards.length }} 个平台 ·
           {{ lastUpdatedText }}
         </p>
       </div>
 
-      <div class="ml-auto flex items-center gap-3">
-        <label class="flex cursor-pointer items-center gap-2 text-xs text-gray-600 dark:text-gray-300">
+      <div class="ml-auto flex items-center gap-2">
+        <label class="flex cursor-pointer items-center gap-1.5 text-[0.7rem] text-gray-600 dark:text-gray-300">
           <input v-model="isAutoRefreshEnabled" type="checkbox" />
           自动刷新（{{ intervalText }}）
         </label>
         <button
-          class="cursor-pointer rounded-md bg-teal-600 px-3 py-1.5 text-xs text-white transition hover:bg-teal-700 disabled:cursor-default disabled:opacity-50"
+          class="cursor-pointer rounded-md bg-teal-600 px-2.5 py-1 text-[0.7rem] text-white transition hover:bg-teal-700 disabled:cursor-default disabled:opacity-50"
           :disabled="store.isRefreshing"
           @click="onRefreshAll"
         >
           {{ store.isRefreshing ? '刷新中…' : '全部刷新' }}
         </button>
         <RouterLink
-          class="rounded-md border border-gray-300 px-3 py-1.5 text-xs text-gray-600 transition hover:border-teal-500 hover:text-teal-600 dark:border-gray-700 dark:text-gray-300"
+          class="rounded-md border border-gray-300 px-2.5 py-1 text-[0.7rem] text-gray-600 transition hover:border-teal-500 hover:text-teal-600 dark:border-gray-700 dark:text-gray-300"
           to="/settings"
         >
           设置
@@ -40,12 +40,11 @@
       填写 API Key。
     </div>
 
-    <div class="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3">
+    <div class="grid grid-cols-3 gap-2">
       <ProviderCard
         v-for="card in store.cards"
         :key="card.id"
         :card="card"
-        @refresh="onRefreshOne"
         @open-console="onOpenConsole"
       />
     </div>
@@ -78,10 +77,6 @@ const lastUpdatedText = computed(() => formatTime(store.lastUpdatedAt))
 
 async function onRefreshAll(): Promise<void> {
   await store.refresh()
-}
-
-function onRefreshOne(): void {
-  void store.refresh()
 }
 
 function onOpenConsole(providerId: ProviderId): void {

@@ -1,44 +1,44 @@
 <template>
-  <div class="mx-auto flex w-full max-w-3xl flex-col gap-4 p-4">
+  <div class="mx-auto flex w-full max-w-3xl flex-col gap-3 p-3">
     <header class="flex items-center gap-3">
       <div>
-        <h1 class="text-xl font-semibold text-gray-900 dark:text-gray-50">设置</h1>
-        <p class="text-xs text-gray-500 dark:text-gray-400">
+        <h1 class="text-lg font-semibold text-gray-900 dark:text-gray-50">设置</h1>
+        <p class="text-[0.7rem] text-gray-500 dark:text-gray-400">
           凭据仅保存在本机配置文件，不会同步到任何服务器
         </p>
       </div>
       <RouterLink
-        class="ml-auto rounded-md border border-gray-300 px-3 py-1.5 text-xs text-gray-600 transition hover:border-teal-500 hover:text-teal-600 dark:border-gray-700 dark:text-gray-300"
+        class="ml-auto rounded-md border border-gray-300 px-2.5 py-1 text-[0.7rem] text-gray-600 transition hover:border-teal-500 hover:text-teal-600 dark:border-gray-700 dark:text-gray-300"
         to="/"
       >
         返回总览
       </RouterLink>
     </header>
 
-    <section class="rounded-xl border border-gray-200 bg-white p-4 dark:border-gray-800 dark:bg-gray-900">
-      <h2 class="mb-3 text-sm font-semibold text-gray-800 dark:text-gray-100">平台凭据</h2>
+    <section class="rounded-xl border border-gray-200 bg-white p-3 dark:border-gray-800 dark:bg-gray-900">
+      <h2 class="mb-2 text-xs font-semibold text-gray-800 dark:text-gray-100">平台凭据</h2>
 
-      <div class="flex flex-col gap-4">
+      <div class="flex flex-col gap-3">
         <div
           v-for="card in store.cards"
           :key="card.id"
-          class="flex flex-col gap-2 border-b border-gray-100 pb-4 last:border-none last:pb-0 dark:border-gray-800"
+          class="flex flex-col gap-1.5 border-b border-gray-100 pb-3 last:border-none last:pb-0 dark:border-gray-800"
         >
           <div class="flex items-center gap-2">
-            <span class="h-2.5 w-2.5 rounded-full" :style="{ backgroundColor: card.accent }" />
-            <span class="text-sm font-medium text-gray-800 dark:text-gray-100">{{ card.label }}</span>
-            <span class="text-xs text-gray-500 dark:text-gray-400">
+            <span class="h-2 w-2 rounded-full" :style="{ backgroundColor: card.accent }" />
+            <span class="text-xs font-medium text-gray-800 dark:text-gray-100">{{ card.label }}</span>
+            <span class="text-[0.7rem] text-gray-500 dark:text-gray-400">
               {{ card.hasCredential ? `已配置 ${card.credentialPreview}` : '未配置' }}
             </span>
             <button
-              class="ml-auto cursor-pointer text-xs text-teal-600 transition hover:text-teal-700"
+              class="ml-auto cursor-pointer text-[0.7rem] text-teal-600 transition hover:text-teal-700"
               @click="onOpenConsole(card.id)"
             >
               打开控制台
             </button>
           </div>
 
-          <p class="text-xs text-gray-400 dark:text-gray-500">{{ metaOf(card.id).credentialHint }}</p>
+          <p class="text-[0.65rem] text-gray-400 dark:text-gray-500">{{ metaOf(card.id).credentialHint }}</p>
 
           <div
             v-for="field in metaOf(card.id).credentialFields"
