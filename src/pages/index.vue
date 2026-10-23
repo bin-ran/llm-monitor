@@ -44,7 +44,7 @@
       </span>
     </div>
 
-    <div v-else class="grid grid-cols-3 gap-3">
+    <div v-else class="grid grid-cols-3 items-start gap-3">
       <ProviderCard
         v-for="card in store.cards"
         :key="card.id"
