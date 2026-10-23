@@ -6,6 +6,7 @@ import {
   type ProviderBalance,
   type ProviderResult,
 } from '../src/shared/provider'
+import { formatCurrencyUnit } from '../src/shared/format'
 import { readConfig } from './config'
 
 let tray: Tray | null = null
@@ -89,7 +90,7 @@ function formatBalanceText(result: ProviderResult): string {
 }
 
 function formatAmount(balance: ProviderBalance): string {
-  return `${balance.available.toFixed(2)} ${balance.currency}`
+  return `${balance.available.toFixed(2)} ${formatCurrencyUnit(balance.currency)}`
 }
 
 function countByStatus(results: ProviderResult[], status: ProviderResult['status']): number {

@@ -8,8 +8,4 @@ export function formatTime(timestamp: number): string {
   return `${hours}:${minutes}:${seconds}`
 }
 
-export function formatCurrencySymbol(currency: string): string {
-  if (currency === 'CNY') return '¥'
-  if (currency === 'USD') return '$'
-  return currency
-}
+export { formatCurrencyUnit } from '../shared/format'

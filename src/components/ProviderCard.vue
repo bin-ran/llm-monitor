@@ -70,7 +70,7 @@ import { computed } from 'vue'
 import ProviderIcon from './ProviderIcon.vue'
 import { PROVIDER_STATUS, type ProviderId } from '../shared/provider'
 import type { ProviderCardModel } from '../stores/providers'
-import { formatCurrencySymbol } from '../utils/format'
+import { formatCurrencyUnit } from '../utils/format'
 
 interface Props {
   card: ProviderCardModel
@@ -123,7 +123,7 @@ const amountText = computed(() => {
 const currencyText = computed(() => {
   const balance = props.card.result.balance
   if (!balance) return ''
-  return `${formatCurrencySymbol(balance.currency)} ${balance.currency}`
+  return formatCurrencyUnit(balance.currency)
 })
 
 const details = computed(() => props.card.result.balance?.details ?? [])

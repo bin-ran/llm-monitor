@@ -7,6 +7,7 @@ import {
   type ProviderId,
   type ProviderResult,
 } from '../src/shared/provider'
+import { formatCurrencyUnit } from '../src/shared/format'
 import { readConfig, readCredential, isCredentialComplete } from './config'
 import { fetchProviderBalance } from './providers'
 import { updateTrayBalances } from './tray'
@@ -86,7 +87,7 @@ function notifyLowBalance(results: ProviderResult[]): void {
       notifiedLowBalance.add(result.providerId)
       new Notification({
         title: `${meta.label} 余额不足`,
-        body: `当前可用 ${result.balance.available.toFixed(2)} ${result.balance.currency}，低于告警阈值 ${threshold}`,
+        body: `当前可用 ${result.balance.available.toFixed(2)} ${formatCurrencyUnit(result.balance.currency)}，低于告警阈值 ${threshold} 元`,
       }).show()
       continue
     }
