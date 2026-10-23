@@ -1,5 +1,11 @@
-import { PROVIDER_STATUS, type ProviderCredential, type ProviderId, type ProviderResult } from '../../src/shared/provider'
+import {
+  PROVIDER_STATUS,
+  type ProviderCredential,
+  type ProviderId,
+  type ProviderResult,
+} from '../../src/shared/provider'
 import { deepseekAdapter } from './deepseek'
+import { isInvalidCredentialError } from './errors'
 import { kimiAdapter } from './kimi'
 import { mimoAdapter } from './mimo'
 import { minimaxAdapter } from './minimax'
@@ -35,7 +41,9 @@ export async function fetchProviderBalance(
     const errorMessage = error instanceof Error ? error.message : '未知错误'
     return {
       providerId,
-      status: PROVIDER_STATUS.ERROR,
+      status: isInvalidCredentialError(error)
+        ? PROVIDER_STATUS.INVALID_CREDENTIAL
+        : PROVIDER_STATUS.ERROR,
       balance: null,
       errorMessage,
       updatedAt,

@@ -30,6 +30,13 @@
     </div>
 
     <div
+      v-else-if="card.result.status === PROVIDER_STATUS.INVALID_CREDENTIAL"
+      class="text-[0.7rem] text-orange-500"
+    >
+      凭证已失效，请到设置页重新配置
+    </div>
+
+    <div
       v-else-if="card.result.status === PROVIDER_STATUS.MISSING_CREDENTIAL"
       class="text-[0.7rem] text-amber-500"
     >
@@ -83,6 +90,8 @@ const statusText = computed(() => {
       return '查询失败'
     case PROVIDER_STATUS.MISSING_CREDENTIAL:
       return '未配置'
+    case PROVIDER_STATUS.INVALID_CREDENTIAL:
+      return '凭证失效'
     case PROVIDER_STATUS.LOADING:
       return '查询中'
     default:
@@ -98,6 +107,8 @@ const statusClass = computed(() => {
       return 'bg-red-100 text-red-600 dark:bg-red-900/40 dark:text-red-300'
     case PROVIDER_STATUS.MISSING_CREDENTIAL:
       return 'bg-amber-100 text-amber-700 dark:bg-amber-900/40 dark:text-amber-300'
+    case PROVIDER_STATUS.INVALID_CREDENTIAL:
+      return 'bg-orange-100 text-orange-700 dark:bg-orange-900/40 dark:text-orange-300'
     default:
       return 'bg-gray-100 text-gray-500 dark:bg-gray-800 dark:text-gray-400'
   }

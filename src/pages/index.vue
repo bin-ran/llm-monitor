@@ -11,6 +11,14 @@
       </div>
 
       <div class="ml-auto flex items-center gap-2">
+        <RouterLink
+          v-if="invalidCredentialLabels.length > 0"
+          class="rounded-md bg-orange-100 px-2 py-1 text-[0.7rem] text-orange-700 transition hover:bg-orange-200 dark:bg-orange-900/40 dark:text-orange-300 dark:hover:bg-orange-900/60"
+          :title="`失效平台：${invalidCredentialLabels.join('、')}`"
+          to="/settings"
+        >
+          ⚠ {{ invalidCredentialLabels.length }} 个凭证失效
+        </RouterLink>
         <label
           class="flex cursor-pointer items-center gap-1.5 text-[0.7rem] text-gray-600 dark:text-gray-300"
         >
@@ -60,7 +68,7 @@ import { computed, onMounted, onUnmounted } from 'vue'
 import { RouterLink } from 'vue-router'
 
 import ProviderCard from '../components/ProviderCard.vue'
-import type { ProviderId } from '../shared/provider'
+import { PROVIDER_STATUS, type ProviderId } from '../shared/provider'
 import { useProvidersStore } from '../stores/providers'
 import { formatTime } from '../utils/format'
 
@@ -78,6 +86,12 @@ const isAutoRefreshEnabled = computed({
 const intervalText = computed(() => `${store.settings.refreshIntervalSeconds} 秒`)
 
 const lastUpdatedText = computed(() => formatTime(store.lastUpdatedAt))
+
+const invalidCredentialLabels = computed(() =>
+  store.cards
+    .filter((card) => card.result.status === PROVIDER_STATUS.INVALID_CREDENTIAL)
+    .map((card) => card.label),
+)
 
 async function onRefreshAll(): Promise<void> {
   await store.refresh()

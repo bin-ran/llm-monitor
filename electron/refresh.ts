@@ -9,10 +9,12 @@ import {
 } from '../src/shared/provider'
 import { readConfig, readCredential, isCredentialComplete } from './config'
 import { fetchProviderBalance } from './providers'
+import { updateTrayBalances } from './tray'
 
 let mainWindow: BrowserWindow | null = null
 let refreshTimer: NodeJS.Timeout | null = null
-const notifiedProviders = new Set<ProviderId>()
+const notifiedLowBalance = new Set<ProviderId>()
+const notifiedInvalidCredential = new Set<ProviderId>()
 
 export function setMainWindow(window: BrowserWindow | null): void {
   mainWindow = window
@@ -36,7 +38,7 @@ export async function fetchAllBalances(): Promise<ProviderResult[]> {
   return Promise.all(tasks)
 }
 
-/** 自动刷新：查询所有平台并推送到渲染层，同时检查余额告警 */
+/** 自动刷新：查询所有平台并推送到渲染层，同时同步托盘与告警 */
 export async function runAutoRefresh(): Promise<ProviderResult[]> {
   const results = await fetchAllBalances()
 
@@ -44,7 +46,9 @@ export async function runAutoRefresh(): Promise<ProviderResult[]> {
     mainWindow.webContents.send('balances:updated', results)
   }
 
+  updateTrayBalances(results)
   notifyLowBalance(results)
+  notifyInvalidCredential(results)
   return results
 }
 
@@ -78,8 +82,8 @@ function notifyLowBalance(results: ProviderResult[]): void {
     const isLow = result.balance.available < threshold
     const meta = PROVIDER_META[result.providerId]
 
-    if (isLow && !notifiedProviders.has(result.providerId)) {
-      notifiedProviders.add(result.providerId)
+    if (isLow && !notifiedLowBalance.has(result.providerId)) {
+      notifiedLowBalance.add(result.providerId)
       new Notification({
         title: `${meta.label} 余额不足`,
         body: `当前可用 ${result.balance.available.toFixed(2)} ${result.balance.currency}，低于告警阈值 ${threshold}`,
@@ -88,7 +92,28 @@ function notifyLowBalance(results: ProviderResult[]): void {
     }
 
     if (!isLow) {
-      notifiedProviders.delete(result.providerId)
+      notifiedLowBalance.delete(result.providerId)
     }
+  }
+}
+
+/** 凭证失效只提醒一次，避免每次自动刷新都弹通知 */
+function notifyInvalidCredential(results: ProviderResult[]): void {
+  for (const result of results) {
+    if (result.status !== PROVIDER_STATUS.INVALID_CREDENTIAL) {
+      notifiedInvalidCredential.delete(result.providerId)
+      continue
+    }
+
+    if (notifiedInvalidCredential.has(result.providerId)) continue
+    notifiedInvalidCredential.add(result.providerId)
+
+    const meta = PROVIDER_META[result.providerId]
+    const hint = meta.loginUrl ? '请在设置页重新登录' : '请在设置页更新凭据'
+
+    new Notification({
+      title: `${meta.label} 凭证失效`,
+      body: `${result.errorMessage}，${hint}`,
+    }).show()
   }
 }

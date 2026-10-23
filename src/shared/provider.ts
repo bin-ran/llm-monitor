@@ -8,6 +8,7 @@ export const PROVIDER_STATUS = {
   OK: 'ok',
   ERROR: 'error',
   MISSING_CREDENTIAL: 'missing-credential',
+  INVALID_CREDENTIAL: 'invalid-credential',
 } as const
 
 export type ProviderStatus = (typeof PROVIDER_STATUS)[keyof typeof PROVIDER_STATUS]
