@@ -1,12 +1,12 @@
 import { BrowserWindow, session } from 'electron'
 import { PROVIDER_META } from '../src/shared/provider'
 import { saveCredential } from './config'
+import { LOGIN_PARTITION } from './security'
 
 /** MiMo 平台需要的 Cookie，serviceToken 为主，其余为辅助项 */
 const REQUIRED_COOKIE = 'api-platform_serviceToken'
 const OPTIONAL_COOKIES = ['userId', 'serviceToken', 'api-platform_ph', 'api-platform_slh', 'xiaomichatbot_ph']
 
-const SESSION_PARTITION = 'persist:mimo'
 const LOGIN_TIMEOUT_MS = 5 * 60 * 1000
 
 export interface LoginResult {
@@ -19,14 +19,14 @@ export interface LoginResult {
  */
 export function openMimoLoginWindow(): Promise<LoginResult> {
   return new Promise((resolve) => {
-    const loginSession = session.fromPartition(SESSION_PARTITION)
+    const loginSession = session.fromPartition(LOGIN_PARTITION)
     const loginWindow = new BrowserWindow({
       width: 1024,
       height: 880,
       title: '登录小米 MiMo',
       autoHideMenuBar: true,
       webPreferences: {
-        partition: SESSION_PARTITION,
+        partition: LOGIN_PARTITION,
       },
     })
 
@@ -53,17 +53,6 @@ export function openMimoLoginWindow(): Promise<LoginResult> {
       finish({ ok: false, message: '登录超时，请重试' })
       loginWindow.close()
     }, LOGIN_TIMEOUT_MS)
-
-    loginWindow.webContents.setWindowOpenHandler(({ url }) => {
-      // 小米账号登录可能在新窗口打开，复用同一会话分区
-      const child = new BrowserWindow({
-        width: 960,
-        height: 800,
-        webPreferences: { partition: SESSION_PARTITION },
-      })
-      void child.loadURL(url)
-      return { action: 'allow' }
-    })
 
     loginWindow.on('closed', () => {
       finish({ ok: false, message: '已取消登录' })

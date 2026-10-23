@@ -3,6 +3,7 @@ import { fileURLToPath } from 'node:url'
 import path from 'node:path'
 import { registerIpcHandlers } from './ipc'
 import { setMainWindow, startAutoRefresh, stopAutoRefresh } from './refresh'
+import { installAppSecurity } from './security'
 import { createTray } from './tray'
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
@@ -16,6 +17,9 @@ export const RENDERER_DIST = path.join(process.env.APP_ROOT, 'dist')
 process.env.VITE_PUBLIC = VITE_DEV_SERVER_URL
   ? path.join(process.env.APP_ROOT, 'public')
   : RENDERER_DIST
+
+// 先安装导航/窗口安全策略，确保任何 webContents 创建时就已生效
+installAppSecurity()
 
 let win: BrowserWindow | null = null
 let isQuitting = false

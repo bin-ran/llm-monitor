@@ -2,7 +2,6 @@ import {
   defineConfig,
   presetAttributify,
   presetIcons,
-  presetWebFonts,
   presetWind4,
   transformerDirectives,
 } from 'unocss'
@@ -18,19 +17,19 @@ export default defineConfig({
       'text-[0.9em] inline-block cursor-pointer select-none opacity-75 transition duration-200 ease-in-out hover:opacity-100 hover:text-teal-600',
     ],
   ],
+  // 字体通过 @fontsource 本地引入（src/main.ts），不使用 CDN，保证 CSP 可锁死为 'self'
+  theme: {
+    fontFamily: {
+      sans: "'DM Sans', ui-sans-serif, system-ui, 'Segoe UI', sans-serif",
+      mono: "'DM Mono', ui-monospace, 'Cascadia Code', monospace",
+    },
+  },
   presets: [
     presetWind4(),
     presetAttributify(),
     presetIcons({
       scale: 1.2,
       warn: true,
-    }),
-    presetWebFonts({
-      fonts: {
-        sans: 'DM Sans',
-        serif: 'DM Serif Display',
-        mono: 'DM Mono',
-      },
     }),
   ],
   transformers: [transformerDirectives()],

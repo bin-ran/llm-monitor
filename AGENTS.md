@@ -61,4 +61,11 @@ pnpm electron:build    # 打包安装包（electron-builder，输出到 release/
 - Windows 上 `safeStorage` 加密与应用名绑定，改动 `package.json` 的 `name` 会导致已保存的凭据无法解密。
 - 智谱的 Coding Plan 额度属于非公开接口，可能随时变更，适配器已做失败降级。
 - 各平台鉴权失败文案不统一，统一收敛在 `electron/providers/errors.ts` 做「凭证失效」识别，新增平台时需同步补充规则与测试。
+
+## 安全约束
+
+- CSP 写在 `index.html` 的 meta 中（`script-src 'self'`，禁止内联脚本与 eval）。因此**不能在 index.html 里写内联 `<script>`**，需要首屏脚本时放到 `public/` 下的独立文件（如 `theme-init.js`）。
+- 字体通过 `@fontsource` 本地打包（`src/main.ts` 引入），不使用 Google Fonts / jsDelivr 等 CDN，保证 CSP 可锁死为 `'self'`，也保证离线可用。
+- `electron/security.ts` 统一挂 `web-contents-created`：主窗口只能停留在自身渲染产物，登录窗口只能在小米账号域名内跳转，禁止 `<webview>`、拦截 `window.open`、外链仅放行 http(s)、渲染层权限请求一律拒绝。
+- 新增需要网页登录的平台时，登录窗口必须使用 `LOGIN_PARTITION` 会话分区，并把域名加入 `security.ts` 的白名单，否则跳转会被拦截。
 - 仓库不配置远端同步推送，提交后由使用者自行推送。
