@@ -1,6 +1,8 @@
 {
   "name": "llm-monitor",
   "version": "0.0.1",
+  "description": "多平台大模型 API 余额监控桌面应用",
+  "author": "binran",
   "private": true,
   "type": "module",
   "main": "dist-electron/main.js",
