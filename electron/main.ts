@@ -23,7 +23,7 @@ process.env.VITE_PUBLIC = VITE_DEV_SERVER_URL
 installAppSecurity()
 
 const DEFAULT_WIDTH = 780
-const DEFAULT_HEIGHT = 490
+const DEFAULT_HEIGHT = 460
 /** 窗口至少要有这么多落在可视区域内，才算位置可用 */
 const MIN_VISIBLE_SIZE = 120
 
@@ -82,7 +82,7 @@ function createWindow(): void {
     width: bounds.width,
     height: bounds.height,
     minWidth: 780,
-    minHeight: 490,
+    minHeight: 460,
     icon: path.join(process.env.VITE_PUBLIC ?? '', 'favicon.ico'),
     backgroundColor: '#121212',
     autoHideMenuBar: true,
