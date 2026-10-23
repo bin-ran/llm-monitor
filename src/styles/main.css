@@ -9,3 +9,46 @@ body,
 html.dark {
   color-scheme: dark;
 }
+
+* {
+  scrollbar-width: thin;
+  scrollbar-color: rgb(0 0 0 / 0.22) transparent;
+}
+
+html.dark,
+html.dark * {
+  scrollbar-color: rgb(255 255 255 / 0.2) transparent;
+}
+
+/* Chromium 自定义滚动条：细、圆角、悬浮加深 */
+::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background-color: rgb(0 0 0 / 0.2);
+  background-clip: content-box;
+  border: 3px solid transparent;
+  border-radius: 9999px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background-color: rgb(0 0 0 / 0.34);
+}
+
+html.dark ::-webkit-scrollbar-thumb {
+  background-color: rgb(255 255 255 / 0.18);
+}
+
+html.dark ::-webkit-scrollbar-thumb:hover {
+  background-color: rgb(255 255 255 / 0.32);
+}
+
+::-webkit-scrollbar-corner {
+  background: transparent;
+}

@@ -2,7 +2,7 @@
   <div class="mx-auto flex w-full max-w-4xl flex-col gap-3 p-3">
     <header class="flex flex-wrap items-center gap-2">
       <img class="h-8 w-8 shrink-0 rounded-lg" src="/logo.svg" alt="LLM Monitor" />
-      <div>
+      <div class="min-w-0">
         <h1 class="text-lg font-semibold text-gray-900 dark:text-gray-50">LLM Monitor</h1>
         <p class="text-[0.7rem] text-gray-500 dark:text-gray-400">
           已配置 {{ store.configuredCount }} / {{ store.cards.length }} 个平台 ·
@@ -11,7 +11,9 @@
       </div>
 
       <div class="ml-auto flex items-center gap-2">
-        <label class="flex cursor-pointer items-center gap-1.5 text-[0.7rem] text-gray-600 dark:text-gray-300">
+        <label
+          class="flex cursor-pointer items-center gap-1.5 text-[0.7rem] text-gray-600 dark:text-gray-300"
+        >
           <input v-model="isAutoRefreshEnabled" type="checkbox" />
           自动刷新（{{ intervalText }}）
         </label>
@@ -35,12 +37,14 @@
       v-if="store.configuredCount === 0"
       class="rounded-xl border border-dashed border-gray-300 p-8 text-center text-sm text-gray-500 dark:border-gray-700 dark:text-gray-400"
     >
-      还没有配置任何平台，先到
-      <RouterLink class="text-teal-600 underline" to="/settings">设置页</RouterLink>
-      填写 API Key。
+      <span>
+        还没有配置任何平台，先到
+        <RouterLink class="text-teal-600 underline" to="/settings">设置页</RouterLink>
+        填写凭据。
+      </span>
     </div>
 
-    <div class="grid grid-cols-3 gap-2">
+    <div v-else class="grid grid-cols-3 gap-3">
       <ProviderCard
         v-for="card in store.cards"
         :key="card.id"
