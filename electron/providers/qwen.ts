@@ -1,7 +1,7 @@
 import { createRequire } from 'node:module'
 
 import { CURRENCY } from '../../src/shared/provider'
-import { asNumber, formatAmount, formatOptionalAmount } from './parse'
+import { asNumber, formatOptionalAmount } from './parse'
 import type { ProviderAdapter } from './types'
 
 import type BssOpenApiType from '@alicloud/bssopenapi20171214'
@@ -22,38 +22,47 @@ export const qwenAdapter: ProviderAdapter = {
       endpoint: ENDPOINT,
     })
 
-    let body: Awaited<ReturnType<BssOpenApiType['queryAccountBalance']>>['data']
+    let body: Awaited<ReturnType<BssOpenApiType['queryAccountBalance']>>['body']
 
     try {
       const response = await client.queryAccountBalance()
-      body = response.data
+      body = response.body
     } catch (error) {
       throw new Error(readErrorMessage(error))
     }
 
-    if (body.Success === false) {
-      throw new Error(body.Message ?? `阿里云返回错误码 ${body.Code ?? '未知'}`)
+    if (!body) {
+      throw new Error('阿里云未返回数据，请稍后重试')
     }
 
-    const data = body.Data ?? {}
-    const available = asNumber(data.AvailableAmount)
+    if (body.success === false) {
+      throw new Error(body.message ?? `阿里云返回错误码 ${body.code ?? '未知'}`)
+    }
+
+    const data = body.data ?? {}
+    const available = asNumber(data.availableAmount)
     if (available === null) {
       throw new Error('未返回余额数据，请确认 AccessKey 与账号状态')
     }
 
     const details = [
-      { label: '现金可用', value: formatOptionalAmount(asNumber(data.AvailableCashAmount)) },
-      { label: '授信额度', value: formatOptionalAmount(asNumber(data.CreditAmount)) },
+      { label: '现金可用', value: formatOptionalAmount(asNumber(data.availableCashAmount)) },
+      { label: '授信额度', value: formatOptionalAmount(asNumber(data.creditAmount)) },
     ]
 
-    const overdue = asNumber(data.OverdueAmount)
-    if (overdue !== null && overdue > 0) {
-      details.push({ label: '欠费金额', value: formatAmount(overdue) })
+    const mybankCredit = asNumber(data.mybankCreditAmount)
+    if (mybankCredit !== null && mybankCredit > 0) {
+      details.push({ label: '网商授信', value: formatOptionalAmount(mybankCredit) })
+    }
+
+    const quotaLimit = asNumber(data.quotaLimit)
+    if (quotaLimit !== null && quotaLimit > 0) {
+      details.push({ label: '生态额度', value: formatOptionalAmount(quotaLimit) })
     }
 
     return {
       available,
-      currency: CURRENCY.CNY,
+      currency: data.currency ?? CURRENCY.CNY,
       total: null,
       used: null,
       details,
@@ -64,11 +73,11 @@ export const qwenAdapter: ProviderAdapter = {
 function readErrorMessage(error: unknown): string {
   if (typeof error !== 'object' || error === null) return '阿里云请求失败'
 
-  const candidate = error as { data?: { Message?: string; Code?: string }; message?: string }
-  const dataMessage = candidate.data?.Message
+  const candidate = error as { data?: { message?: string; code?: string }; message?: string }
+  const dataMessage = candidate.data?.message
   if (typeof dataMessage === 'string' && dataMessage.length > 0) return dataMessage
 
-  const dataCode = candidate.data?.Code
+  const dataCode = candidate.data?.code
   if (typeof dataCode === 'string' && dataCode.length > 0) return `阿里云返回错误码 ${dataCode}`
 
   if (typeof candidate.message === 'string' && candidate.message.length > 0) return candidate.message

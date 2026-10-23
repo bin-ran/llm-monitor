@@ -1,24 +1,25 @@
 declare module '@alicloud/bssopenapi20171214' {
   interface QueryAccountBalanceData {
-    AvailableAmount?: string
-    AvailableCashAmount?: string
-    CreditAmount?: string
-    Currency?: string
-    TotalAmount?: string
-    OverdueAmount?: string
+    availableAmount?: string
+    availableCashAmount?: string
+    creditAmount?: string
+    currency?: string
+    mybankCreditAmount?: string
+    quotaLimit?: string
   }
 
   interface QueryAccountBalanceBody {
-    Code?: string
-    Message?: string
-    Success?: boolean
-    Data?: QueryAccountBalanceData
+    code?: string
+    message?: string
+    requestId?: string
+    success?: boolean
+    data?: QueryAccountBalanceData
   }
 
   interface QueryAccountBalanceResponse {
-    statusCode: number
-    headers: Record<string, string>
-    data: QueryAccountBalanceBody
+    statusCode?: number
+    headers?: Record<string, string>
+    body?: QueryAccountBalanceBody
   }
 
   interface BssOpenApiConfig {
