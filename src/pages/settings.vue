@@ -25,7 +25,7 @@
           class="flex flex-col gap-1.5 border-b border-gray-100 pb-3 last:border-none last:pb-0 dark:border-gray-800"
         >
           <div class="flex items-center gap-2">
-            <span class="h-2 w-2 rounded-full" :style="{ backgroundColor: card.accent }" />
+            <ProviderIcon :provider-id="card.id" />
             <span class="text-xs font-medium text-gray-800 dark:text-gray-100">{{ card.label }}</span>
             <span class="text-[0.7rem] text-gray-500 dark:text-gray-400">
               {{ card.hasCredential ? `已配置 ${card.credentialPreview}` : '未配置' }}
@@ -165,6 +165,7 @@
 import { computed, onMounted, reactive, ref } from 'vue'
 import { RouterLink } from 'vue-router'
 
+import ProviderIcon from '../components/ProviderIcon.vue'
 import {
   PROVIDER_IDS,
   PROVIDER_META,

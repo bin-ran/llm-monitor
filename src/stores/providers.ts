@@ -17,7 +17,6 @@ import {
 export interface ProviderCardModel {
   id: ProviderId
   label: string
-  accent: string
   homepage: string
   result: ProviderResult
   hasCredential: boolean
@@ -71,7 +70,6 @@ export const useProvidersStore = defineStore('providers', () => {
       return {
         id: providerId,
         label: meta.label,
-        accent: meta.accent,
         homepage: meta.homepage,
         result: results.value[providerId],
         hasCredential: credentialState.hasCredential,

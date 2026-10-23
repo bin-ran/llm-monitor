@@ -97,8 +97,6 @@ export interface ProviderMeta {
   label: string
   /** 控制台地址，用于跳转充值与查看账单 */
   homepage: string
-  /** 卡片主色 */
-  accent: string
   /** 余额币种 */
   currency: string
   credentialKind: CredentialKind
@@ -122,7 +120,6 @@ export const PROVIDER_META: Record<ProviderId, ProviderMeta> = {
     id: 'deepseek',
     label: 'DeepSeek',
     homepage: 'https://platform.deepseek.com',
-    accent: '#4d6bfe',
     currency: CURRENCY.CNY,
     credentialKind: CREDENTIAL_KIND.API_KEY,
     credentialFields: [API_KEY_FIELD],
@@ -133,7 +130,6 @@ export const PROVIDER_META: Record<ProviderId, ProviderMeta> = {
     id: 'kimi',
     label: 'Kimi',
     homepage: 'https://platform.kimi.com',
-    accent: '#1f1f1f',
     currency: CURRENCY.CNY,
     credentialKind: CREDENTIAL_KIND.API_KEY,
     credentialFields: [API_KEY_FIELD],
@@ -144,7 +140,6 @@ export const PROVIDER_META: Record<ProviderId, ProviderMeta> = {
     id: 'zhipu',
     label: '智谱 GLM',
     homepage: 'https://open.bigmodel.cn',
-    accent: '#3859ff',
     currency: CURRENCY.CNY,
     credentialKind: CREDENTIAL_KIND.API_KEY,
     credentialFields: [API_KEY_FIELD],
@@ -155,7 +150,6 @@ export const PROVIDER_META: Record<ProviderId, ProviderMeta> = {
     id: 'minimax',
     label: 'MiniMax',
     homepage: 'https://platform.minimaxi.com',
-    accent: '#ff5a3c',
     currency: CURRENCY.CNY,
     credentialKind: CREDENTIAL_KIND.API_KEY,
     credentialFields: [API_KEY_FIELD],
@@ -166,7 +160,6 @@ export const PROVIDER_META: Record<ProviderId, ProviderMeta> = {
     id: 'mimo',
     label: '小米 MiMo',
     homepage: 'https://platform.xiaomimimo.com',
-    accent: '#ff6900',
     currency: CURRENCY.CNY,
     credentialKind: CREDENTIAL_KIND.COOKIE,
     credentialFields: [
@@ -185,7 +178,6 @@ export const PROVIDER_META: Record<ProviderId, ProviderMeta> = {
     id: 'qwen',
     label: '千问AI平台',
     homepage: 'https://platform.qianwenai.com/home',
-    accent: '#ff6a00',
     currency: CURRENCY.CNY,
     credentialKind: CREDENTIAL_KIND.ACCESS_KEY,
     credentialFields: [

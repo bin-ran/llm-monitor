@@ -2,45 +2,57 @@
   <section
     class="flex flex-col gap-2 rounded-xl border border-gray-200 bg-white p-3 shadow-sm transition hover:shadow-md dark:border-gray-800 dark:bg-gray-900"
   >
-    <header class="flex items-center gap-2">
-      <span class="h-2.5 w-2.5 shrink-0 rounded-full" :style="{ backgroundColor: card.accent }" />
-      <h2 class="text-sm font-semibold text-gray-800 dark:text-gray-100">{{ card.label }}</h2>
+    <header class="flex shrink-0 items-center gap-1.5">
+      <ProviderIcon :provider-id="card.id" />
+      <h2 class="truncate text-sm font-semibold text-gray-800 dark:text-gray-100">
+        {{ card.label }}
+      </h2>
       <span
-        class="ml-auto rounded-full px-1.5 py-0.5 text-[0.65rem] font-medium"
+        class="ml-auto shrink-0 rounded-full px-1.5 py-0.5 text-[0.65rem] font-medium"
         :class="statusClass"
       >
         {{ statusText }}
       </span>
     </header>
 
-    <div class="flex items-end gap-1.5">
+    <div class="flex shrink-0 items-end gap-1.5">
       <span class="text-2xl font-semibold tracking-tight text-gray-900 dark:text-gray-50">
         {{ amountText }}
       </span>
       <span class="pb-0.5 text-xs text-gray-500 dark:text-gray-400">{{ currencyText }}</span>
     </div>
 
-    <div v-if="card.result.status === PROVIDER_STATUS.ERROR" class="text-xs text-red-500">
+    <div
+      v-if="card.result.status === PROVIDER_STATUS.ERROR"
+      class="text-[0.7rem] text-red-500"
+    >
       {{ card.result.errorMessage }}
     </div>
 
-    <div v-else-if="card.result.status === PROVIDER_STATUS.MISSING_CREDENTIAL" class="text-xs text-amber-500">
-      未配置 API Key，无法查询余额
+    <div
+      v-else-if="card.result.status === PROVIDER_STATUS.MISSING_CREDENTIAL"
+      class="text-[0.7rem] text-amber-500"
+    >
+      未配置凭据，无法查询余额
     </div>
 
     <ul v-if="details.length > 0" class="flex flex-col gap-0.5">
       <li
         v-for="detail in details"
         :key="detail.label"
-        class="flex justify-between text-[0.7rem] text-gray-500 dark:text-gray-400"
+        class="flex justify-between gap-2 text-[0.7rem] text-gray-500 dark:text-gray-400"
       >
-        <span>{{ detail.label }}</span>
-        <span class="font-medium text-gray-700 dark:text-gray-300">{{ detail.value }}</span>
+        <span class="truncate">{{ detail.label }}</span>
+        <span class="shrink-0 font-medium text-gray-700 dark:text-gray-300">{{ detail.value }}</span>
       </li>
     </ul>
 
-    <footer class="mt-auto flex items-center gap-3 pt-0.5 text-[0.7rem] text-gray-500 dark:text-gray-400">
-      <button class="ml-auto cursor-pointer transition hover:text-teal-600" @click="onOpenConsole">控制台</button>
+    <footer
+      class="mt-auto flex shrink-0 items-center gap-3 text-[0.7rem] text-gray-500 dark:text-gray-400"
+    >
+      <button class="ml-auto cursor-pointer transition hover:text-teal-600" @click="onOpenConsole">
+        控制台
+      </button>
     </footer>
   </section>
 </template>
@@ -48,6 +60,7 @@
 <script setup lang="ts">
 import { computed } from 'vue'
 
+import ProviderIcon from './ProviderIcon.vue'
 import { PROVIDER_STATUS, type ProviderId } from '../shared/provider'
 import type { ProviderCardModel } from '../stores/providers'
 import { formatCurrencySymbol } from '../utils/format'
