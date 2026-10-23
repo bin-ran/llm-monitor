@@ -58,6 +58,7 @@
         :key="card.id"
         :card="card"
         @open-console="onOpenConsole"
+        @refresh="onRefreshOne"
       />
     </div>
   </div>
@@ -99,6 +100,10 @@ async function onRefreshAll(): Promise<void> {
 
 function onOpenConsole(providerId: ProviderId): void {
   store.openConsole(providerId)
+}
+
+function onRefreshOne(providerId: ProviderId): void {
+  void store.refreshOne(providerId)
 }
 
 onMounted(async () => {

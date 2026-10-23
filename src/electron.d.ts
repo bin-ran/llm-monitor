@@ -14,6 +14,7 @@ export interface ILlmMonitorApi {
   updateSettings(patch: Partial<AppSettings>): Promise<AppConfigView>
   fetchBalances(): Promise<ProviderResult[]>
   refreshBalances(): Promise<ProviderResult[]>
+  refreshProvider(providerId: ProviderId): Promise<ProviderResult>
   openConsole(providerId: ProviderId): Promise<void>
   startLogin(providerId: ProviderId): Promise<LoginResult>
   onBalancesUpdated(callback: (results: ProviderResult[]) => void): () => void

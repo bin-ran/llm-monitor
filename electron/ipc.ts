@@ -7,7 +7,7 @@ import {
   updateSettings,
 } from './config'
 import { openMimoLoginWindow } from './mimo-login'
-import { fetchAllBalances, runAutoRefresh, startAutoRefresh } from './refresh'
+import { fetchAllBalances, refreshProvider, runAutoRefresh, startAutoRefresh } from './refresh'
 
 function isProviderId(value: unknown): value is ProviderId {
   return typeof value === 'string' && value in PROVIDER_META
@@ -57,6 +57,11 @@ export function registerIpcHandlers(): void {
   ipcMain.handle('balances:fetch', () => fetchAllBalances())
 
   ipcMain.handle('balances:refresh', () => runAutoRefresh())
+
+  ipcMain.handle('balances:refresh-one', (_event, providerId: unknown) => {
+    if (!isProviderId(providerId)) throw new Error('未知的平台标识')
+    return refreshProvider(providerId)
+  })
 
   ipcMain.handle('console:open', (_event, providerId: unknown) => {
     if (!isProviderId(providerId)) throw new Error('未知的平台标识')

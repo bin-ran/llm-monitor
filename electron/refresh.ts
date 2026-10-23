@@ -14,11 +14,40 @@ import { updateTrayBalances } from './tray'
 
 let mainWindow: BrowserWindow | null = null
 let refreshTimer: NodeJS.Timeout | null = null
+let lastResults: ProviderResult[] = []
 const notifiedLowBalance = new Set<ProviderId>()
 const notifiedInvalidCredential = new Set<ProviderId>()
 
 export function setMainWindow(window: BrowserWindow | null): void {
   mainWindow = window
+}
+
+/** 最近一次查询结果，便于增量刷新时与已有结果合并 */
+export function getLastBalances(): ProviderResult[] {
+  return lastResults
+}
+
+/** 查询单个平台，供「测试连接」与卡片单独刷新使用 */
+export async function refreshProvider(providerId: ProviderId): Promise<ProviderResult> {
+  const credential = await readCredential(providerId)
+
+  const result: ProviderResult = isCredentialComplete(providerId, credential)
+    ? await fetchProviderBalance(providerId, credential as ProviderCredential)
+    : {
+        providerId,
+        status: PROVIDER_STATUS.MISSING_CREDENTIAL,
+        balance: null,
+        errorMessage: '未配置凭据',
+        updatedAt: Date.now(),
+      }
+
+  // 合并到缓存并同步托盘，保证托盘与卡片显示一致
+  lastResults = lastResults.some((item) => item.providerId === providerId)
+    ? lastResults.map((item) => (item.providerId === providerId ? result : item))
+    : [...lastResults, result]
+
+  updateTrayBalances(lastResults)
+  return result
 }
 
 export async function fetchAllBalances(): Promise<ProviderResult[]> {
@@ -42,6 +71,7 @@ export async function fetchAllBalances(): Promise<ProviderResult[]> {
 /** 自动刷新：查询所有平台并推送到渲染层，同时同步托盘与告警 */
 export async function runAutoRefresh(): Promise<ProviderResult[]> {
   const results = await fetchAllBalances()
+  lastResults = results
 
   if (mainWindow && !mainWindow.isDestroyed()) {
     mainWindow.webContents.send('balances:updated', results)

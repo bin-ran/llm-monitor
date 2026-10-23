@@ -26,6 +26,10 @@ const api = {
 
   refreshBalances: (): Promise<ProviderResult[]> => ipcRenderer.invoke('balances:refresh'),
 
+  /** 只刷新指定平台；也用于设置页的「测试连接」 */
+  refreshProvider: (providerId: ProviderId): Promise<ProviderResult> =>
+    ipcRenderer.invoke('balances:refresh-one', providerId),
+
   openConsole: (providerId: ProviderId): Promise<void> =>
     ipcRenderer.invoke('console:open', providerId),
 

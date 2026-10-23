@@ -7,12 +7,14 @@
       <h2 class="truncate text-sm font-semibold text-gray-800 dark:text-gray-100">
         {{ card.label }}
       </h2>
-      <span
-        class="ml-auto shrink-0 rounded-full px-1.5 py-0.5 text-[0.65rem] font-medium"
+      <button
+        class="ml-auto shrink-0 cursor-pointer rounded-full px-1.5 py-0.5 text-[0.65rem] font-medium transition hover:brightness-95 dark:hover:brightness-125"
         :class="statusClass"
+        title="点击重新查询该平台"
+        @click="onRefresh"
       >
         {{ statusText }}
-      </span>
+      </button>
     </header>
 
     <div class="flex shrink-0 items-end gap-1.5">
@@ -80,6 +82,7 @@ const props = defineProps<Props>()
 
 const emit = defineEmits<{
   openConsole: [providerId: ProviderId]
+  refresh: [providerId: ProviderId]
 }>()
 
 const statusText = computed(() => {
@@ -130,5 +133,9 @@ const details = computed(() => props.card.result.balance?.details ?? [])
 
 function onOpenConsole(): void {
   emit('openConsole', props.card.id)
+}
+
+function onRefresh(): void {
+  emit('refresh', props.card.id)
 }
 </script>

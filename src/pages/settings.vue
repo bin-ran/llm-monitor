@@ -94,6 +94,13 @@
               {{ savingId === card.id ? '保存中…' : '保存' }}
             </button>
             <button
+              class="cursor-pointer rounded-md border border-gray-300 px-3 py-1.5 text-xs text-gray-600 transition hover:border-teal-500 hover:text-teal-600 disabled:cursor-default disabled:opacity-50 dark:border-gray-700 dark:text-gray-300"
+              :disabled="testingId === card.id || savingId === card.id"
+              @click="onTestConnection(card.id)"
+            >
+              {{ testingId === card.id ? '测试中…' : '测试连接' }}
+            </button>
+            <button
               v-if="card.hasCredential"
               class="cursor-pointer rounded-md border border-red-300 px-3 py-1.5 text-xs text-red-500 transition hover:border-red-500 disabled:cursor-default disabled:opacity-50"
               :disabled="savingId === card.id"
@@ -101,7 +108,17 @@
             >
               删除
             </button>
-            <span v-if="messages[card.id]" class="text-xs text-gray-500 dark:text-gray-400">
+            <span
+              v-if="messages[card.id]"
+              class="text-xs"
+              :class="
+                messageTone[card.id] === 'error'
+                  ? 'text-red-500'
+                  : messageTone[card.id] === 'ok'
+                    ? 'text-emerald-600 dark:text-emerald-400'
+                    : 'text-gray-500 dark:text-gray-400'
+              "
+            >
               {{ messages[card.id] }}
             </span>
           </div>
@@ -169,11 +186,13 @@ import ProviderIcon from '../components/ProviderIcon.vue'
 import {
   PROVIDER_IDS,
   PROVIDER_META,
+  PROVIDER_STATUS,
   REFRESH_INTERVAL_OPTIONS,
   type ProviderCredential,
   type ProviderId,
 } from '../shared/provider'
 import { useProvidersStore } from '../stores/providers'
+import { formatCurrencyUnit } from '../utils/format'
 
 const store = useProvidersStore()
 
@@ -182,6 +201,8 @@ const visibleSecrets = reactive<Record<string, boolean>>({})
 const messages = reactive<Record<string, string>>({})
 
 const savingId = ref<ProviderId | null>(null)
+const testingId = ref<ProviderId | null>(null)
+const messageTone = reactive<Record<string, 'ok' | 'error' | 'info'>>({})
 const loginId = ref<ProviderId | null>(null)
 
 const intervalOptions = REFRESH_INTERVAL_OPTIONS
@@ -244,6 +265,31 @@ async function onSaveKey(providerId: ProviderId): Promise<void> {
     messages[providerId] = error instanceof Error ? error.message : '保存失败'
   } finally {
     savingId.value = null
+  }
+}
+
+/** 用当前已保存的凭据真实查询一次，直接给出可用余额或错误原因 */
+async function onTestConnection(providerId: ProviderId): Promise<void> {
+  testingId.value = providerId
+  messages[providerId] = ''
+  messageTone[providerId] = 'info'
+
+  try {
+    const result = await store.refreshOne(providerId)
+
+    if (result.status === PROVIDER_STATUS.OK && result.balance) {
+      messages[providerId] = `连接正常，可用余额 ${result.balance.available.toFixed(2)} ${formatCurrencyUnit(result.balance.currency)}`
+      messageTone[providerId] = 'ok'
+      return
+    }
+
+    messages[providerId] = result.errorMessage || '查询失败'
+    messageTone[providerId] = 'error'
+  } catch (error) {
+    messages[providerId] = error instanceof Error ? error.message : '测试失败'
+    messageTone[providerId] = 'error'
+  } finally {
+    testingId.value = null
   }
 }
 

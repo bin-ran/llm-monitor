@@ -113,6 +113,14 @@ export const useProvidersStore = defineStore('providers', () => {
     }
   }
 
+  /** 只刷新一个平台，并立刻更新该卡片 */
+  async function refreshOne(providerId: ProviderId): Promise<ProviderResult> {
+    const result = await window.llmMonitor.refreshProvider(providerId)
+    results.value[providerId] = result
+    lastUpdatedAt.value = Date.now()
+    return result
+  }
+
   async function saveCredential(
     providerId: ProviderId,
     values: ProviderCredential,
@@ -158,6 +166,7 @@ export const useProvidersStore = defineStore('providers', () => {
     configuredCount,
     init,
     refresh,
+    refreshOne,
     saveCredential,
     removeCredential,
     saveSettings,
