@@ -36,8 +36,9 @@ src/
 pnpm electron:dev      # 开发模式（Electron + DevTools）
 pnpm type-check        # vue-tsc 类型检查（含 electron/）
 pnpm lint              # ESLint
+pnpm test              # vitest 单元测试（适配器解析 / 凭证失效识别）
 pnpm build-only        # 仅构建渲染层
-pnpm electron:build    # 打包安装包（electron-builder）
+pnpm electron:build    # 打包安装包（electron-builder，输出到 release/）
 ```
 
 ## 已接入的平台与余额接口
@@ -59,4 +60,5 @@ pnpm electron:build    # 打包安装包（electron-builder）
 - 小米 MiMo 用 `persist:mimo` 独立会话分区做网页登录抓 Cookie，Cookie 过期需重新登录。
 - Windows 上 `safeStorage` 加密与应用名绑定，改动 `package.json` 的 `name` 会导致已保存的凭据无法解密。
 - 智谱的 Coding Plan 额度属于非公开接口，可能随时变更，适配器已做失败降级。
+- 各平台鉴权失败文案不统一，统一收敛在 `electron/providers/errors.ts` 做「凭证失效」识别，新增平台时需同步补充规则与测试。
 - 仓库不配置远端同步推送，提交后由使用者自行推送。

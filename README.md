@@ -58,15 +58,17 @@ pnpm install
 pnpm electron:dev
 ```
 
-### 构建项目
+### 构建与打包
 
 ```bash
-# 构建 Electron 应用
+# 构建并生成 Windows 安装包（输出到 release/<version>/）
 pnpm electron:build
 
-# 仅构建（不打包）用于测试
+# 仅打包目录、不生成安装包
 pnpm electron:preview
 ```
+
+安装包产物：`release/0.0.1/LLM Monitor-0.0.1-Setup.exe`（NSIS，可选择安装目录）。
 
 ### 其他命令
 
@@ -79,6 +81,9 @@ pnpm format
 
 # ESLint 检查并自动修复
 pnpm lint
+
+# 单元测试（适配器解析与错误识别）
+pnpm test
 ```
 
 ## Logo 设计
