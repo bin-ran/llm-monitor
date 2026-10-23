@@ -1,0 +1,18 @@
+allowBuilds:
+  electron: true
+  electron-winstaller: true
+  esbuild: true
+minimumReleaseAgeExclude:
+  - app-builder-lib@26.15.2
+  - dmg-builder@26.15.2
+  - electron-builder-squirrel-windows@26.15.2
+  - electron-builder@26.15.2
+  - electron-publish@26.15.1
+  - electron@42.4.0
+  - '@vue/language-core@3.3.8'
+  - vue-tsc@3.3.8
+onlyBuiltDependencies:
+  - electron
+  - electron-winstaller
+  - esbuild
+  - vue-demi
