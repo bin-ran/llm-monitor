@@ -4,7 +4,7 @@
       <div>
         <h1 class="text-xl font-semibold text-gray-900 dark:text-gray-50">设置</h1>
         <p class="text-xs text-gray-500 dark:text-gray-400">
-          API Key 仅保存在本机配置文件，不会同步到任何服务器
+          凭据仅保存在本机配置文件，不会同步到任何服务器
         </p>
       </div>
       <RouterLink
@@ -16,7 +16,7 @@
     </header>
 
     <section class="rounded-xl border border-gray-200 bg-white p-4 dark:border-gray-800 dark:bg-gray-900">
-      <h2 class="mb-3 text-sm font-semibold text-gray-800 dark:text-gray-100">平台 API Key</h2>
+      <h2 class="mb-3 text-sm font-semibold text-gray-800 dark:text-gray-100">平台凭据</h2>
 
       <div class="flex flex-col gap-4">
         <div
@@ -38,22 +38,57 @@
             </button>
           </div>
 
+          <p class="text-xs text-gray-400 dark:text-gray-500">{{ metaOf(card.id).credentialHint }}</p>
+
+          <div
+            v-for="field in metaOf(card.id).credentialFields"
+            :key="field.key"
+            class="flex flex-col gap-1"
+          >
+            <label class="text-xs text-gray-500 dark:text-gray-400" :for="`${card.id}-${field.key}`">
+              {{ field.label }}
+            </label>
+            <div class="flex items-start gap-2">
+              <textarea
+                v-if="field.isMultiline"
+                :id="`${card.id}-${field.key}`"
+                :value="inputValue(card.id, field.key)"
+                :placeholder="field.placeholder"
+                rows="3"
+                class="min-w-60 flex-1 resize-y rounded-md border border-gray-300 bg-white px-3 py-1.5 font-mono text-xs outline-none transition focus:border-teal-500 dark:border-gray-700 dark:bg-gray-800"
+                @input="onInput(card.id, field.key, $event)"
+              />
+              <input
+                v-else
+                :id="`${card.id}-${field.key}`"
+                :value="inputValue(card.id, field.key)"
+                :type="isSecretVisible(card.id, field.key) ? 'text' : 'password'"
+                :placeholder="field.placeholder"
+                class="min-w-60 flex-1 rounded-md border border-gray-300 bg-white px-3 py-1.5 text-sm outline-none transition focus:border-teal-500 dark:border-gray-700 dark:bg-gray-800"
+                @input="onInput(card.id, field.key, $event)"
+              />
+              <button
+                v-if="field.isSecret"
+                class="cursor-pointer rounded-md border border-gray-300 px-3 py-1.5 text-xs text-gray-600 transition hover:border-teal-500 dark:border-gray-700 dark:text-gray-300"
+                @click="toggleSecret(card.id, field.key)"
+              >
+                {{ isSecretVisible(card.id, field.key) ? '隐藏' : '显示' }}
+              </button>
+            </div>
+          </div>
+
           <div class="flex flex-wrap items-center gap-2">
-            <input
-              v-model="keyInputs[card.id]"
-              :type="isVisible[card.id] ? 'text' : 'password'"
-              :placeholder="card.hasCredential ? '输入新的 Key 以覆盖' : 'sk-...'"
-              class="min-w-60 flex-1 rounded-md border border-gray-300 bg-white px-3 py-1.5 text-sm outline-none transition focus:border-teal-500 dark:border-gray-700 dark:bg-gray-800"
-            />
             <button
-              class="cursor-pointer rounded-md border border-gray-300 px-3 py-1.5 text-xs text-gray-600 transition hover:border-teal-500 dark:border-gray-700 dark:text-gray-300"
-              @click="isVisible[card.id] = !isVisible[card.id]"
+              v-if="metaOf(card.id).loginUrl"
+              class="cursor-pointer rounded-md border border-teal-500 px-3 py-1.5 text-xs text-teal-600 transition hover:bg-teal-50 disabled:cursor-default disabled:opacity-50 dark:hover:bg-teal-900/30"
+              :disabled="loginId === card.id"
+              @click="onStartLogin(card.id)"
             >
-              {{ isVisible[card.id] ? '隐藏' : '显示' }}
+              {{ loginId === card.id ? '等待登录…' : '登录获取' }}
             </button>
             <button
               class="cursor-pointer rounded-md bg-teal-600 px-3 py-1.5 text-xs text-white transition hover:bg-teal-700 disabled:cursor-default disabled:opacity-50"
-              :disabled="savingId === card.id || keyInputs[card.id].trim().length === 0"
+              :disabled="savingId === card.id || !isReadyToSave(card.id)"
               @click="onSaveKey(card.id)"
             >
               {{ savingId === card.id ? '保存中…' : '保存' }}
@@ -66,6 +101,9 @@
             >
               删除
             </button>
+            <span v-if="messages[card.id]" class="text-xs text-gray-500 dark:text-gray-400">
+              {{ messages[card.id] }}
+            </span>
           </div>
 
           <div class="flex items-center gap-2">
@@ -82,9 +120,7 @@
               class="w-28 rounded-md border border-gray-300 bg-white px-2 py-1 text-xs outline-none transition focus:border-teal-500 dark:border-gray-700 dark:bg-gray-800"
               @change="onThresholdChange(card.id, $event)"
             />
-            <span class="text-xs text-gray-500 dark:text-gray-400">
-              低于该金额时弹出系统通知
-            </span>
+            <span class="text-xs text-gray-500 dark:text-gray-400">低于该金额时弹出系统通知</span>
           </div>
         </div>
       </div>
@@ -117,7 +153,7 @@
         <div class="flex gap-2">
           <dt>密钥加密</dt>
           <dd class="text-gray-700 dark:text-gray-300">
-            {{ store.isEncryptionAvailable ? '系统密钥环已启用' : '系统密钥环不可用，Key 以明文保存' }}
+            {{ store.isEncryptionAvailable ? '系统密钥环已启用' : '系统密钥环不可用，凭据以明文保存' }}
           </dd>
         </div>
       </dl>
@@ -129,32 +165,23 @@
 import { computed, onMounted, reactive, ref } from 'vue'
 import { RouterLink } from 'vue-router'
 
-import { PROVIDER_IDS, REFRESH_INTERVAL_OPTIONS, type ProviderId } from '../shared/provider'
+import {
+  PROVIDER_IDS,
+  PROVIDER_META,
+  REFRESH_INTERVAL_OPTIONS,
+  type ProviderCredential,
+  type ProviderId,
+} from '../shared/provider'
 import { useProvidersStore } from '../stores/providers'
 
 const store = useProvidersStore()
 
-function createKeyInputs(): Record<ProviderId, string> {
-  const inputs = {} as Record<ProviderId, string>
-  for (const providerId of PROVIDER_IDS) {
-    inputs[providerId] = ''
-  }
-  return inputs
-}
-
-function createVisibilityMap(): Record<ProviderId, boolean> {
-  const visibility = {} as Record<ProviderId, boolean>
-  for (const providerId of PROVIDER_IDS) {
-    visibility[providerId] = false
-  }
-  return visibility
-}
-
-const keyInputs = reactive(createKeyInputs())
-
-const isVisible = reactive(createVisibilityMap())
+const inputs = reactive<Record<string, string>>({})
+const visibleSecrets = reactive<Record<string, boolean>>({})
+const messages = reactive<Record<string, string>>({})
 
 const savingId = ref<ProviderId | null>(null)
+const loginId = ref<ProviderId | null>(null)
 
 const intervalOptions = REFRESH_INTERVAL_OPTIONS
 
@@ -165,20 +192,55 @@ const isAutoRefreshEnabled = computed({
   },
 })
 
+function metaOf(providerId: ProviderId) {
+  return PROVIDER_META[providerId]
+}
+
+function inputKey(providerId: ProviderId, fieldKey: string): string {
+  return `${providerId}.${fieldKey}`
+}
+
+function inputValue(providerId: ProviderId, fieldKey: string): string {
+  return inputs[inputKey(providerId, fieldKey)] ?? ''
+}
+
+function isSecretVisible(providerId: ProviderId, fieldKey: string): boolean {
+  return visibleSecrets[inputKey(providerId, fieldKey)] ?? false
+}
+
+function onInput(providerId: ProviderId, fieldKey: string, event: Event): void {
+  const target = event.target as HTMLInputElement | HTMLTextAreaElement
+  inputs[inputKey(providerId, fieldKey)] = target.value
+}
+
+function toggleSecret(providerId: ProviderId, fieldKey: string): void {
+  const key = inputKey(providerId, fieldKey)
+  visibleSecrets[key] = !visibleSecrets[key]
+}
+
+function isReadyToSave(providerId: ProviderId): boolean {
+  const fields = metaOf(providerId).credentialFields
+  return fields.every((field) => inputValue(providerId, field.key).trim().length > 0)
+}
+
 function thresholdValue(providerId: ProviderId): number | '' {
   const threshold = store.settings.thresholds[providerId]
   return threshold ?? ''
 }
 
 async function onSaveKey(providerId: ProviderId): Promise<void> {
-  const credential = keyInputs[providerId].trim()
-  if (credential.length === 0) return
+  const credential: ProviderCredential = {}
+
+  for (const field of metaOf(providerId).credentialFields) {
+    credential[field.key] = inputValue(providerId, field.key).trim()
+  }
 
   savingId.value = providerId
   try {
     await store.saveCredential(providerId, credential)
-    keyInputs[providerId] = ''
-    isVisible[providerId] = false
+    messages[providerId] = '已保存'
+  } catch (error) {
+    messages[providerId] = error instanceof Error ? error.message : '保存失败'
   } finally {
     savingId.value = null
   }
@@ -188,9 +250,21 @@ async function onDeleteKey(providerId: ProviderId): Promise<void> {
   savingId.value = providerId
   try {
     await store.removeCredential(providerId)
-    keyInputs[providerId] = ''
+    messages[providerId] = '已删除'
   } finally {
     savingId.value = null
+  }
+}
+
+async function onStartLogin(providerId: ProviderId): Promise<void> {
+  loginId.value = providerId
+  try {
+    const result = await store.startLogin(providerId)
+    messages[providerId] = result.message
+  } catch (error) {
+    messages[providerId] = error instanceof Error ? error.message : '登录失败'
+  } finally {
+    loginId.value = null
   }
 }
 
@@ -220,5 +294,8 @@ function onOpenConsole(providerId: ProviderId): void {
 
 onMounted(async () => {
   await store.init()
+  for (const providerId of PROVIDER_IDS) {
+    messages[providerId] = ''
+  }
 })
 </script>

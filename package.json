@@ -20,6 +20,7 @@
     "electron:preview": "electron-builder --dir"
   },
   "dependencies": {
+    "@alicloud/bssopenapi20171214": "^4.1.1",
     "@unocss/reset": "^66.11.0",
     "@vueuse/core": "^15.0.0",
     "canvas-confetti": "^1.9.4",

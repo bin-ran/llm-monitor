@@ -9,10 +9,11 @@ const QUOTA_URL = 'https://open.bigmodel.cn/api/monitor/usage/quota/limit'
 export const zhipuAdapter: ProviderAdapter = {
   id: 'zhipu',
   async fetchBalance(credential) {
+    const apiKey = credential.apiKey ?? ''
     const payload = asRecord(
       await requestJson(ACCOUNT_URL, {
         // 智谱账户接口要求裸 Key，不带 Bearer 前缀
-        Authorization: credential,
+        Authorization: apiKey,
         Accept: 'application/json',
         'Content-Type': 'application/json',
       }),
@@ -43,7 +44,7 @@ export const zhipuAdapter: ProviderAdapter = {
       details.push({ label: '冻结余额', value: formatAmount(frozen) })
     }
 
-    const quotaDetails = await fetchCodingPlanQuota(credential)
+    const quotaDetails = await fetchCodingPlanQuota(apiKey)
     details.push(...quotaDetails)
 
     return {

@@ -1,4 +1,4 @@
-export const PROVIDER_IDS = ['deepseek', 'kimi', 'zhipu', 'minimax'] as const
+export const PROVIDER_IDS = ['deepseek', 'kimi', 'zhipu', 'minimax', 'mimo', 'qwen'] as const
 
 export type ProviderId = (typeof PROVIDER_IDS)[number]
 
@@ -17,7 +17,26 @@ export const CURRENCY = {
   USD: 'USD',
 } as const
 
+export const CREDENTIAL_KIND = {
+  API_KEY: 'api-key',
+  COOKIE: 'cookie',
+  ACCESS_KEY: 'access-key',
+} as const
+
+export type CredentialKind = (typeof CREDENTIAL_KIND)[keyof typeof CREDENTIAL_KIND]
+
 export const REFRESH_INTERVAL_OPTIONS = [60, 300, 1800, 3600] as const
+
+/** 凭据字段集合，key 与各适配器读取的字段名一致 */
+export type ProviderCredential = Record<string, string>
+
+export interface CredentialField {
+  key: string
+  label: string
+  placeholder: string
+  isSecret: boolean
+  isMultiline: boolean
+}
 
 export interface ProviderBalanceDetail {
   label: string
@@ -53,6 +72,12 @@ export interface ProviderCredentialState {
   credentialPreview: string
 }
 
+/** 登录窗口结果（目前用于小米 MiMo 抓取登录态） */
+export interface LoginResult {
+  ok: boolean
+  message: string
+}
+
 export interface AppSettings {
   autoRefreshEnabled: boolean
   refreshIntervalSeconds: number
@@ -76,6 +101,20 @@ export interface ProviderMeta {
   accent: string
   /** 余额币种 */
   currency: string
+  credentialKind: CredentialKind
+  credentialFields: CredentialField[]
+  /** 需要网页登录的平台，登录窗口地址 */
+  loginUrl: string
+  /** 凭据填写提示 */
+  credentialHint: string
+}
+
+const API_KEY_FIELD: CredentialField = {
+  key: 'apiKey',
+  label: 'API Key',
+  placeholder: 'sk-...',
+  isSecret: true,
+  isMultiline: false,
 }
 
 export const PROVIDER_META: Record<ProviderId, ProviderMeta> = {
@@ -85,6 +124,10 @@ export const PROVIDER_META: Record<ProviderId, ProviderMeta> = {
     homepage: 'https://platform.deepseek.com',
     accent: '#4d6bfe',
     currency: CURRENCY.CNY,
+    credentialKind: CREDENTIAL_KIND.API_KEY,
+    credentialFields: [API_KEY_FIELD],
+    loginUrl: '',
+    credentialHint: '开放平台「API Keys」中创建',
   },
   kimi: {
     id: 'kimi',
@@ -92,6 +135,10 @@ export const PROVIDER_META: Record<ProviderId, ProviderMeta> = {
     homepage: 'https://platform.kimi.com',
     accent: '#1f1f1f',
     currency: CURRENCY.CNY,
+    credentialKind: CREDENTIAL_KIND.API_KEY,
+    credentialFields: [API_KEY_FIELD],
+    loginUrl: '',
+    credentialHint: '开放平台「API 密钥」中创建',
   },
   zhipu: {
     id: 'zhipu',
@@ -99,6 +146,10 @@ export const PROVIDER_META: Record<ProviderId, ProviderMeta> = {
     homepage: 'https://open.bigmodel.cn',
     accent: '#3859ff',
     currency: CURRENCY.CNY,
+    credentialKind: CREDENTIAL_KIND.API_KEY,
+    credentialFields: [API_KEY_FIELD],
+    loginUrl: '',
+    credentialHint: '开放平台「API Key 管理」中创建',
   },
   minimax: {
     id: 'minimax',
@@ -106,6 +157,56 @@ export const PROVIDER_META: Record<ProviderId, ProviderMeta> = {
     homepage: 'https://platform.minimaxi.com',
     accent: '#ff5a3c',
     currency: CURRENCY.CNY,
+    credentialKind: CREDENTIAL_KIND.API_KEY,
+    credentialFields: [API_KEY_FIELD],
+    loginUrl: '',
+    credentialHint: '开放平台「接口密钥」中创建',
+  },
+  mimo: {
+    id: 'mimo',
+    label: '小米 MiMo',
+    homepage: 'https://platform.xiaomimimo.com',
+    accent: '#ff6900',
+    currency: CURRENCY.CNY,
+    credentialKind: CREDENTIAL_KIND.COOKIE,
+    credentialFields: [
+      {
+        key: 'cookie',
+        label: 'Cookie',
+        placeholder: 'api-platform_serviceToken=...; userId=...',
+        isSecret: true,
+        isMultiline: true,
+      },
+    ],
+    loginUrl: 'https://platform.xiaomimimo.com/#/console/balance',
+    credentialHint: '官方未开放余额接口，需登录态 Cookie；点「登录获取」自动抓取',
+  },
+  qwen: {
+    id: 'qwen',
+    label: '千问AI平台',
+    homepage: 'https://platform.qianwenai.com/home',
+    accent: '#ff6a00',
+    currency: CURRENCY.CNY,
+    credentialKind: CREDENTIAL_KIND.ACCESS_KEY,
+    credentialFields: [
+      {
+        key: 'accessKeyId',
+        label: 'AccessKey ID',
+        placeholder: 'LTAI5t...',
+        isSecret: false,
+        isMultiline: false,
+      },
+      {
+        key: 'accessKeySecret',
+        label: 'AccessKey Secret',
+        placeholder: '阿里云 RAM 密钥',
+        isSecret: true,
+        isMultiline: false,
+      },
+    ],
+    loginUrl: '',
+    credentialHint:
+      '模型 API Key 无法查询余额，需阿里云 RAM 密钥（bssapi:QueryAccountBalance 只读权限）',
   },
 }
 

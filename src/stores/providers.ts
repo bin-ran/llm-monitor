@@ -7,6 +7,8 @@ import {
   PROVIDER_STATUS,
   type AppConfigView,
   type AppSettings,
+  type LoginResult,
+  type ProviderCredential,
   type ProviderCredentialState,
   type ProviderId,
   type ProviderResult,
@@ -113,8 +115,11 @@ export const useProvidersStore = defineStore('providers', () => {
     }
   }
 
-  async function saveCredential(providerId: ProviderId, credential: string): Promise<void> {
-    applyConfig(await window.llmMonitor.saveCredential(providerId, credential))
+  async function saveCredential(
+    providerId: ProviderId,
+    values: ProviderCredential,
+  ): Promise<void> {
+    applyConfig(await window.llmMonitor.saveCredential(providerId, values))
     await refresh()
   }
 
@@ -124,6 +129,13 @@ export const useProvidersStore = defineStore('providers', () => {
 
   async function saveSettings(patch: Partial<AppSettings>): Promise<void> {
     applyConfig(await window.llmMonitor.updateSettings(patch))
+  }
+
+  async function startLogin(providerId: ProviderId): Promise<LoginResult> {
+    const result = await window.llmMonitor.startLogin(providerId)
+    await init()
+    if (result.ok) await refresh()
+    return result
   }
 
   function openConsole(providerId: ProviderId): void {
@@ -151,6 +163,7 @@ export const useProvidersStore = defineStore('providers', () => {
     saveCredential,
     removeCredential,
     saveSettings,
+    startLogin,
     openConsole,
     subscribeBalances,
   }

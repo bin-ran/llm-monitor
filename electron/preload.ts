@@ -2,6 +2,8 @@ import { contextBridge, ipcRenderer } from 'electron'
 import type {
   AppConfigView,
   AppSettings,
+  LoginResult,
+  ProviderCredential,
   ProviderId,
   ProviderResult,
 } from '../src/shared/provider'
@@ -9,8 +11,10 @@ import type {
 const api = {
   getConfig: (): Promise<AppConfigView> => ipcRenderer.invoke('config:get'),
 
-  saveCredential: (providerId: ProviderId, credential: string): Promise<AppConfigView> =>
-    ipcRenderer.invoke('config:save-credential', providerId, credential),
+  saveCredential: (
+    providerId: ProviderId,
+    values: ProviderCredential,
+  ): Promise<AppConfigView> => ipcRenderer.invoke('config:save-credential', providerId, values),
 
   removeCredential: (providerId: ProviderId): Promise<AppConfigView> =>
     ipcRenderer.invoke('config:remove-credential', providerId),
@@ -24,6 +28,10 @@ const api = {
 
   openConsole: (providerId: ProviderId): Promise<void> =>
     ipcRenderer.invoke('console:open', providerId),
+
+  /** 打开平台登录窗口（目前用于小米 MiMo 抓取登录态） */
+  startLogin: (providerId: ProviderId): Promise<LoginResult> =>
+    ipcRenderer.invoke('login:mimo', providerId),
 
   /** 订阅主进程自动刷新的结果，返回取消订阅函数 */
   onBalancesUpdated: (callback: (results: ProviderResult[]) => void): (() => void) => {

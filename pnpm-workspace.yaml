@@ -1,4 +1,5 @@
 allowBuilds:
+  '@alicloud/openapi-core': true
   electron: true
   electron-winstaller: true
   esbuild: true

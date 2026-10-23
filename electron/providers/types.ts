@@ -1,7 +1,7 @@
-import type { ProviderBalance, ProviderId } from '../../src/shared/provider'
+import type { ProviderBalance, ProviderCredential, ProviderId } from '../../src/shared/provider'
 
 export interface ProviderAdapter {
   id: ProviderId
   /** 拉取账户余额，失败时抛出 Error */
-  fetchBalance(credential: string): Promise<ProviderBalance>
+  fetchBalance(credential: ProviderCredential): Promise<ProviderBalance>
 }

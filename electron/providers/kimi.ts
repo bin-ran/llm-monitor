@@ -10,7 +10,7 @@ export const kimiAdapter: ProviderAdapter = {
   async fetchBalance(credential) {
     const payload = asRecord(
       await requestJson(BALANCE_URL, {
-        Authorization: `Bearer ${credential}`,
+        Authorization: `Bearer ${credential.apiKey ?? ''}`,
         Accept: 'application/json',
       }),
     )

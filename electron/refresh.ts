@@ -3,10 +3,11 @@ import {
   PROVIDER_IDS,
   PROVIDER_META,
   PROVIDER_STATUS,
+  type ProviderCredential,
   type ProviderId,
   type ProviderResult,
 } from '../src/shared/provider'
-import { readConfig, readCredential } from './config'
+import { readConfig, readCredential, isCredentialComplete } from './config'
 import { fetchProviderBalance } from './providers'
 
 let mainWindow: BrowserWindow | null = null
@@ -20,7 +21,7 @@ export function setMainWindow(window: BrowserWindow | null): void {
 export async function fetchAllBalances(): Promise<ProviderResult[]> {
   const tasks = PROVIDER_IDS.map(async (providerId): Promise<ProviderResult> => {
     const credential = await readCredential(providerId)
-    if (!credential) {
+    if (!isCredentialComplete(providerId, credential)) {
       return {
         providerId,
         status: PROVIDER_STATUS.MISSING_CREDENTIAL,
@@ -29,7 +30,7 @@ export async function fetchAllBalances(): Promise<ProviderResult[]> {
         updatedAt: Date.now(),
       }
     }
-    return fetchProviderBalance(providerId, credential)
+    return fetchProviderBalance(providerId, credential as ProviderCredential)
   })
 
   return Promise.all(tasks)

@@ -1,7 +1,9 @@
-import { PROVIDER_STATUS, type ProviderId, type ProviderResult } from '../../src/shared/provider'
+import { PROVIDER_STATUS, type ProviderCredential, type ProviderId, type ProviderResult } from '../../src/shared/provider'
 import { deepseekAdapter } from './deepseek'
 import { kimiAdapter } from './kimi'
+import { mimoAdapter } from './mimo'
 import { minimaxAdapter } from './minimax'
+import { qwenAdapter } from './qwen'
 import { zhipuAdapter } from './zhipu'
 import type { ProviderAdapter } from './types'
 
@@ -10,11 +12,13 @@ const ADAPTERS: Record<ProviderId, ProviderAdapter> = {
   kimi: kimiAdapter,
   zhipu: zhipuAdapter,
   minimax: minimaxAdapter,
+  mimo: mimoAdapter,
+  qwen: qwenAdapter,
 }
 
 export async function fetchProviderBalance(
   providerId: ProviderId,
-  credential: string,
+  credential: ProviderCredential,
 ): Promise<ProviderResult> {
   const updatedAt = Date.now()
 

@@ -4,8 +4,10 @@ import path from 'node:path'
 import {
   DEFAULT_SETTINGS,
   PROVIDER_IDS,
+  PROVIDER_META,
   type AppConfigView,
   type AppSettings,
+  type ProviderCredential,
   type ProviderCredentialState,
   type ProviderId,
 } from '../src/shared/provider'
@@ -13,8 +15,10 @@ import {
 const SECRET_PREFIX_ENCRYPTED = 'enc:'
 const SECRET_PREFIX_PLAIN = 'plain:'
 
+type StoredCredentials = Partial<Record<ProviderId, Record<string, string>>>
+
 interface StoredConfig {
-  credentials: Partial<Record<ProviderId, string>>
+  credentials: StoredCredentials
   autoRefreshEnabled: boolean
   refreshIntervalSeconds: number
   thresholds: Partial<Record<ProviderId, number>>
@@ -41,7 +45,7 @@ export function readConfig(): StoredConfig {
     const parsed = JSON.parse(fs.readFileSync(configPath, 'utf-8')) as Partial<StoredConfig>
     const config = defaultConfig()
     if (parsed.credentials && typeof parsed.credentials === 'object') {
-      config.credentials = { ...parsed.credentials }
+      config.credentials = migrateCredentials(parsed.credentials)
     }
     if (typeof parsed.autoRefreshEnabled === 'boolean') {
       config.autoRefreshEnabled = parsed.autoRefreshEnabled
@@ -67,13 +71,42 @@ export function writeConfig(config: StoredConfig): void {
   fs.writeFileSync(configPath, JSON.stringify(config, null, 2), 'utf-8')
 }
 
+/**
+ * 兼容旧版配置：早期每个平台只有一个字符串凭据，统一视为 apiKey
+ */
+function migrateCredentials(credentials: StoredCredentials): StoredCredentials {
+  const migrated: StoredCredentials = {}
+
+  for (const [providerId, value] of Object.entries(credentials)) {
+    if (typeof value === 'string') {
+      migrated[providerId as ProviderId] = { apiKey: value }
+      continue
+    }
+    if (value && typeof value === 'object') {
+      migrated[providerId as ProviderId] = value as Record<string, string>
+    }
+  }
+
+  return migrated
+}
+
 export async function isEncryptionAvailable(): Promise<boolean> {
   return safeStorage.isAsyncEncryptionAvailable()
 }
 
-export async function saveCredential(providerId: ProviderId, credential: string): Promise<void> {
+export async function saveCredential(
+  providerId: ProviderId,
+  values: ProviderCredential,
+): Promise<void> {
   const config = readConfig()
-  config.credentials[providerId] = await encryptSecret(credential)
+  const stored: Record<string, string> = {}
+
+  for (const [field, value] of Object.entries(values)) {
+    if (value.length === 0) continue
+    stored[field] = await encryptSecret(value)
+  }
+
+  config.credentials[providerId] = stored
   writeConfig(config)
 }
 
@@ -83,10 +116,17 @@ export function removeCredential(providerId: ProviderId): void {
   writeConfig(config)
 }
 
-export async function readCredential(providerId: ProviderId): Promise<string | null> {
+export async function readCredential(providerId: ProviderId): Promise<ProviderCredential | null> {
   const stored = readConfig().credentials[providerId]
   if (!stored) return null
-  return decryptSecret(stored)
+
+  const credential: ProviderCredential = {}
+  for (const [field, value] of Object.entries(stored)) {
+    const plain = await decryptSecret(value)
+    if (plain === null) return null
+    credential[field] = plain
+  }
+  return credential
 }
 
 export function updateSettings(patch: Partial<AppSettings>): AppSettings {
@@ -112,16 +152,28 @@ export function buildSettings(config: StoredConfig): AppSettings {
   }
 }
 
+export function isCredentialComplete(
+  providerId: ProviderId,
+  credential: ProviderCredential | null,
+): boolean {
+  if (!credential) return false
+  return PROVIDER_META[providerId].credentialFields.every(
+    (field) => (credential[field.key] ?? '').length > 0,
+  )
+}
+
 export async function buildConfigView(): Promise<AppConfigView> {
   const config = readConfig()
   const providers: ProviderCredentialState[] = []
 
   for (const providerId of PROVIDER_IDS) {
     const credential = await readCredential(providerId)
+    const requiredFields = PROVIDER_META[providerId].credentialFields
+
     providers.push({
       providerId,
-      hasCredential: credential !== null,
-      credentialPreview: credential ? maskCredential(credential) : '',
+      hasCredential: isCredentialComplete(providerId, credential),
+      credentialPreview: credential ? maskCredential(credential[requiredFields[0].key] ?? '') : '',
     })
   }
 
@@ -157,8 +209,15 @@ async function decryptSecret(stored: string): Promise<string | null> {
         const config = readConfig()
         const providerId = findProviderBySecret(config, stored)
         if (providerId) {
-          config.credentials[providerId] = await encryptSecret(decrypted.result)
-          writeConfig(config)
+          const fields = config.credentials[providerId]
+          if (fields) {
+            for (const [field, value] of Object.entries(fields)) {
+              if (value === stored) {
+                fields[field] = await encryptSecret(decrypted.result)
+              }
+            }
+            writeConfig(config)
+          }
         }
       }
 
@@ -171,17 +230,19 @@ async function decryptSecret(stored: string): Promise<string | null> {
   return null
 }
 
-function findProviderBySecret(
-  config: StoredConfig,
-  stored: string,
-): ProviderId | null {
+function findProviderBySecret(config: StoredConfig, stored: string): ProviderId | null {
   for (const providerId of PROVIDER_IDS) {
-    if (config.credentials[providerId] === stored) return providerId
+    const fields = config.credentials[providerId]
+    if (!fields) continue
+    for (const value of Object.values(fields)) {
+      if (value === stored) return providerId
+    }
   }
   return null
 }
 
 function maskCredential(credential: string): string {
+  if (credential.length === 0) return ''
   if (credential.length <= 10) return '••••••'
   return `${credential.slice(0, 6)}••••${credential.slice(-4)}`
 }
