@@ -36,12 +36,17 @@ function createWindow(): void {
     minHeight: 490,
     icon: path.join(process.env.VITE_PUBLIC ?? '', 'favicon.ico'),
     backgroundColor: '#121212',
+    autoHideMenuBar: true,
     webPreferences: {
       preload: path.join(__dirname, 'preload.mjs'),
       nodeIntegration: false,
       contextIsolation: true,
     },
   })
+
+  // 隐藏默认菜单栏（File/Edit/View/Window）
+  win.setMenu(null)
+  win.setMenuBarVisibility(false)
 
   if (VITE_DEV_SERVER_URL) {
     win.loadURL(VITE_DEV_SERVER_URL)
