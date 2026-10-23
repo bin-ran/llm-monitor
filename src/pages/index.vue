@@ -1,5 +1,5 @@
 <template>
-  <div class="mx-auto flex w-full max-w-6xl flex-col gap-5 p-5">
+  <div class="mx-auto flex w-full max-w-5xl flex-col gap-4 p-4">
     <header class="flex flex-wrap items-center gap-3">
       <img class="h-9 w-9 shrink-0 rounded-lg" src="/logo.svg" alt="LLM Monitor" />
       <div>

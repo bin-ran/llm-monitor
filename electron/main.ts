@@ -26,10 +26,10 @@ function getWindow(): BrowserWindow | null {
 
 function createWindow(): void {
   win = new BrowserWindow({
-    width: 1180,
-    height: 820,
-    minWidth: 880,
-    minHeight: 600,
+    width: 980,
+    height: 680,
+    minWidth: 780,
+    minHeight: 560,
     icon: path.join(process.env.VITE_PUBLIC ?? '', 'favicon.ico'),
     backgroundColor: '#121212',
     webPreferences: {

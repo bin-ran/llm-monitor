@@ -51,14 +51,7 @@
 
     <footer class="mt-auto flex items-center gap-3 pt-1 text-xs text-gray-500 dark:text-gray-400">
       <span>{{ updatedAtText }}</span>
-      <button
-        class="ml-auto cursor-pointer transition hover:text-teal-600 disabled:cursor-default disabled:opacity-40"
-        :disabled="isBusy"
-        @click="onRefresh"
-      >
-        刷新
-      </button>
-      <button class="cursor-pointer transition hover:text-teal-600" @click="onOpenConsole">控制台</button>
+      <button class="ml-auto cursor-pointer transition hover:text-teal-600" @click="onOpenConsole">控制台</button>
     </footer>
   </section>
 </template>
@@ -77,11 +70,8 @@ interface Props {
 const props = defineProps<Props>()
 
 const emit = defineEmits<{
-  refresh: [providerId: ProviderId]
   openConsole: [providerId: ProviderId]
 }>()
-
-const isBusy = computed(() => props.card.result.status === PROVIDER_STATUS.LOADING)
 
 const statusText = computed(() => {
   switch (props.card.result.status) {
@@ -139,10 +129,6 @@ const ratioText = computed(() => {
 })
 
 const updatedAtText = computed(() => formatTime(props.card.result.updatedAt))
-
-function onRefresh(): void {
-  emit('refresh', props.card.id)
-}
 
 function onOpenConsole(): void {
   emit('openConsole', props.card.id)

@@ -1,5 +1,5 @@
 <template>
-  <div class="mx-auto flex w-full max-w-4xl flex-col gap-5 p-5">
+  <div class="mx-auto flex w-full max-w-3xl flex-col gap-4 p-4">
     <header class="flex items-center gap-3">
       <div>
         <h1 class="text-xl font-semibold text-gray-900 dark:text-gray-50">设置</h1>
