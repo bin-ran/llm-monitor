@@ -17,11 +17,20 @@ const SECRET_PREFIX_PLAIN = 'plain:'
 
 type StoredCredentials = Partial<Record<ProviderId, Record<string, string>>>
 
+export interface WindowBounds {
+  x: number
+  y: number
+  width: number
+  height: number
+}
+
 interface StoredConfig {
   credentials: StoredCredentials
   autoRefreshEnabled: boolean
   refreshIntervalSeconds: number
   thresholds: Partial<Record<ProviderId, number>>
+  /** 主窗口上次的位置与尺寸，null 表示未记录 */
+  window: WindowBounds | null
 }
 
 export function getConfigPath(): string {
@@ -34,6 +43,7 @@ function defaultConfig(): StoredConfig {
     autoRefreshEnabled: DEFAULT_SETTINGS.autoRefreshEnabled,
     refreshIntervalSeconds: DEFAULT_SETTINGS.refreshIntervalSeconds,
     thresholds: {},
+    window: null,
   }
 }
 
@@ -56,6 +66,7 @@ export function readConfig(): StoredConfig {
     if (parsed.thresholds && typeof parsed.thresholds === 'object') {
       config.thresholds = { ...parsed.thresholds }
     }
+    config.window = migrateWindowBounds(parsed.window)
     return config
   } catch {
     return defaultConfig()
@@ -142,6 +153,30 @@ export function updateSettings(patch: Partial<AppSettings>): AppSettings {
   }
   writeConfig(config)
   return buildSettings(config)
+}
+
+/** 兼容旧配置：window 字段缺失或非法时视为未记录 */
+function migrateWindowBounds(raw: unknown): WindowBounds | null {
+  if (!raw || typeof raw !== 'object') return null
+  const stored = raw as Partial<WindowBounds>
+  const values = [stored.x, stored.y, stored.width, stored.height]
+  if (!values.every((value) => typeof value === 'number' && Number.isFinite(value))) return null
+  return {
+    x: Math.round(stored.x as number),
+    y: Math.round(stored.y as number),
+    width: Math.round(stored.width as number),
+    height: Math.round(stored.height as number),
+  }
+}
+
+export function readWindowBounds(): WindowBounds | null {
+  return readConfig().window
+}
+
+export function saveWindowBounds(bounds: WindowBounds): void {
+  const config = readConfig()
+  config.window = migrateWindowBounds(bounds)
+  writeConfig(config)
 }
 
 export function buildSettings(config: StoredConfig): AppSettings {
