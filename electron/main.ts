@@ -1,7 +1,9 @@
 import { app, BrowserWindow } from 'electron'
 import { fileURLToPath } from 'node:url'
 import path from 'node:path'
-import '../src/manager/index'
+import { registerIpcHandlers } from './ipc'
+import { setMainWindow, startAutoRefresh, stopAutoRefresh } from './refresh'
+import { createTray } from './tray'
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
 
@@ -15,13 +17,21 @@ process.env.VITE_PUBLIC = VITE_DEV_SERVER_URL
   ? path.join(process.env.APP_ROOT, 'public')
   : RENDERER_DIST
 
-let win: BrowserWindow | null
+let win: BrowserWindow | null = null
+let isQuitting = false
 
-function createWindow() {
+function getWindow(): BrowserWindow | null {
+  return win
+}
+
+function createWindow(): void {
   win = new BrowserWindow({
-    width: 1200,
-    height: 800,
-    icon: path.join(process.env.VITE_PUBLIC, 'favicon.ico'),
+    width: 1180,
+    height: 820,
+    minWidth: 880,
+    minHeight: 600,
+    icon: path.join(process.env.VITE_PUBLIC ?? '', 'favicon.ico'),
+    backgroundColor: '#121212',
     webPreferences: {
       preload: path.join(__dirname, 'preload.mjs'),
       nodeIntegration: false,
@@ -29,7 +39,6 @@ function createWindow() {
     },
   })
 
-  // 测试: 加载本地窗口时,开发时打开开发工具
   if (VITE_DEV_SERVER_URL) {
     win.loadURL(VITE_DEV_SERVER_URL)
     win.webContents.openDevTools()
@@ -37,9 +46,16 @@ function createWindow() {
     win.loadFile(path.join(RENDERER_DIST, 'index.html'))
   }
 
-  // 当窗口关闭时触发
+  win.on('close', (event) => {
+    if (isQuitting) return
+    // 关闭时收起到托盘，保持后台自动刷新
+    event.preventDefault()
+    win?.hide()
+  })
+
   win.on('closed', () => {
     win = null
+    setMainWindow(null)
   })
 }
 
@@ -48,19 +64,39 @@ if (process.platform === 'win32') {
   app.disableHardwareAcceleration()
 }
 
-// 当 Electron 完成初始化时
-app.whenReady().then(createWindow)
+if (!app.requestSingleInstanceLock()) {
+  app.quit()
+} else {
+  app.on('second-instance', () => {
+    const window = getWindow()
+    if (!window) return
+    window.show()
+    window.focus()
+  })
 
-// macOS 上的应用激活行为
-app.on('activate', () => {
-  if (BrowserWindow.getAllWindows().length === 0) {
+  app.whenReady().then(() => {
+    registerIpcHandlers()
     createWindow()
-  }
-})
+    setMainWindow(win)
+    createTray(getWindow)
+    startAutoRefresh()
+  })
 
-// 所有窗口关闭时退出应用
-app.on('window-all-closed', () => {
-  if (process.platform !== 'darwin') {
-    app.quit()
-  }
-})
+  app.on('activate', () => {
+    if (BrowserWindow.getAllWindows().length === 0) {
+      createWindow()
+      setMainWindow(win)
+    }
+  })
+
+  app.on('before-quit', () => {
+    isQuitting = true
+    stopAutoRefresh()
+  })
+
+  app.on('window-all-closed', () => {
+    if (process.platform !== 'darwin') {
+      app.quit()
+    }
+  })
+}
