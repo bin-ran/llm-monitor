@@ -57,5 +57,6 @@ pnpm electron:build    # 打包安装包（electron-builder）
 - 凭据只落在本机配置文件（`%APPDATA%/llm-monitor/config.json`），由 Electron `safeStorage`（Windows DPAPI）加密，禁止写入日志或提交到仓库。
 - 阿里云 BSS 签名必须走官方 SDK `@alicloud/bssopenapi20171214`（ACS3-HMAC-SHA256），手写旧版 HMAC-SHA1 已被淘汰；SDK 为 CommonJS，主进程用 `createRequire` 加载。
 - 小米 MiMo 用 `persist:mimo` 独立会话分区做网页登录抓 Cookie，Cookie 过期需重新登录。
+- Windows 上 `safeStorage` 加密与应用名绑定，改动 `package.json` 的 `name` 会导致已保存的凭据无法解密。
 - 智谱的 Coding Plan 额度属于非公开接口，可能随时变更，适配器已做失败降级。
 - 仓库不配置远端同步推送，提交后由使用者自行推送。
