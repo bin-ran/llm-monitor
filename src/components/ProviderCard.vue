@@ -28,16 +28,6 @@
       未配置 API Key，无法查询余额
     </div>
 
-    <div v-if="ratioText" class="flex flex-col gap-1">
-      <div class="h-1.5 w-full overflow-hidden rounded-full bg-gray-200 dark:bg-gray-800">
-        <div
-          class="h-full rounded-full transition-all"
-          :style="{ width: `${ratioPercent}%`, backgroundColor: card.accent }"
-        />
-      </div>
-      <span class="text-xs text-gray-500 dark:text-gray-400">{{ ratioText }}</span>
-    </div>
-
     <ul v-if="details.length > 0" class="flex flex-col gap-1">
       <li
         v-for="detail in details"
@@ -50,7 +40,6 @@
     </ul>
 
     <footer class="mt-auto flex items-center gap-3 pt-1 text-xs text-gray-500 dark:text-gray-400">
-      <span>{{ updatedAtText }}</span>
       <button class="ml-auto cursor-pointer transition hover:text-teal-600" @click="onOpenConsole">控制台</button>
     </footer>
   </section>
@@ -61,7 +50,7 @@ import { computed } from 'vue'
 
 import { PROVIDER_STATUS, type ProviderId } from '../shared/provider'
 import type { ProviderCardModel } from '../stores/providers'
-import { formatCurrencySymbol, formatTime } from '../utils/format'
+import { formatCurrencySymbol } from '../utils/format'
 
 interface Props {
   card: ProviderCardModel
@@ -114,21 +103,6 @@ const currencyText = computed(() => {
 })
 
 const details = computed(() => props.card.result.balance?.details ?? [])
-
-const ratioPercent = computed(() => {
-  const balance = props.card.result.balance
-  if (!balance || balance.total === null || balance.total <= 0) return 0
-  const percent = (balance.available / balance.total) * 100
-  return Math.max(0, Math.min(100, percent))
-})
-
-const ratioText = computed(() => {
-  const balance = props.card.result.balance
-  if (!balance || balance.total === null || balance.total <= 0) return ''
-  return `可用占比 ${ratioPercent.value.toFixed(1)}%（总额 ${balance.total.toFixed(2)}）`
-})
-
-const updatedAtText = computed(() => formatTime(props.card.result.updatedAt))
 
 function onOpenConsole(): void {
   emit('openConsole', props.card.id)
