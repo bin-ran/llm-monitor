@@ -27,9 +27,9 @@ function getWindow(): BrowserWindow | null {
 function createWindow(): void {
   win = new BrowserWindow({
     width: 780,
-    height: 600,
-    minWidth: 660,
-    minHeight: 480,
+    height: 620,
+    minWidth: 680,
+    minHeight: 620,
     icon: path.join(process.env.VITE_PUBLIC ?? '', 'favicon.ico'),
     backgroundColor: '#121212',
     webPreferences: {
