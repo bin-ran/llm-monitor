@@ -2,12 +2,27 @@
 
 一个基于 Electron + Vue 3 + Vite 的桌面应用，用于集中查看多家大模型开放平台的账户余额与用量。
 
+<img src="public/logo-lockup-light.svg" alt="LLM Monitor" width="360" />
+
 ## 功能特点
 
-1. 🖥️ 多平台余额聚合展示（DeepSeek / Kimi / 智谱 / MiniMax / MiMo / 千问）
-2. 🔑 API Key 本地加密存储（Electron safeStorage）
-3. 🕐 定时自动刷新与托盘常驻
-4. ⚠️ 低余额阈值告警
+1. 🖥️ 多平台余额聚合展示（DeepSeek / Kimi / 智谱 GLM / MiniMax）
+2. 🔑 API Key 本地加密存储（Electron safeStorage / Windows DPAPI）
+3. 🕐 定时自动刷新（可配置间隔）与托盘常驻
+4. ⚠️ 低余额阈值告警（系统通知）
+5. 🔗 一键跳转各平台控制台充值
+
+## 已接入平台
+
+| 平台 | 余额接口 | 可用字段 |
+| --- | --- | --- |
+| DeepSeek | `GET api.deepseek.com/user/balance` | 总额、充值余额、赠送余额 |
+| Kimi | `GET api.moonshot.cn/v1/users/me/balance` | 可用余额、代金券、现金余额 |
+| 智谱 GLM | `GET www.bigmodel.cn/api/biz/account/query-customer-account-report` | 可用余额、充值、赠送、累计消费、Coding Plan 额度 |
+| MiniMax | `GET api.minimaxi.com/account/query_balance` | 可用余额、现金、代金券、授信、欠费 |
+
+> 尚未接入：小米 MiMo（官方无公开余额接口）、千问（官方需 RAM AK/SK）。
+> 各平台的「用量明细」同样多数没有公开 API，本应用只聚合余额。
 
 ## 技术栈
 
@@ -63,22 +78,38 @@ pnpm format
 pnpm lint
 ```
 
+## Logo 设计
+
+Logo 在 Figma 中设计（页面 `Logo` → 分区 `06 · LLM-MONITOR · CONCEPTS` / `07 · LLM-MONITOR · FINAL`），
+设计模型：**MiniMax-M3.1-Flash**（pi coding agent）。
+
+成品资产在 `public/`（`favicon.ico`、`logo.svg`、`logo-mono.svg`、`logo-inverted.svg`、`logo-lockup*.svg`、`icon-*.png`），
+概念方案与使用规范见 [`design/README.md`](design/README.md)。
+
 ## 项目结构
 
 ```
 .
-├── electron/          # Electron 主进程和预加载脚本
-│   ├── main.ts       # Electron 主进程
-│   └── preload.ts    # 预加载脚本
+├── electron/          # Electron 主进程
+│   ├── main.ts       # 应用入口（窗口、托盘、生命周期）
+│   ├── preload.ts    # 预加载脚本，暴露 window.llmMonitor
+│   ├── config.ts     # 配置读写与密钥加密
+│   ├── ipc.ts        # IPC 处理器
+│   ├── refresh.ts    # 自动刷新调度与余额告警
+│   ├── tray.ts       # 托盘图标与菜单
+│   └── providers/    # 各平台余额适配器
 ├── src/              # 渲染进程（Vue 应用）
-│   ├── manager/      # 管理模块
-│   ├── pages/        # 页面组件
+│   ├── shared/       # 主进程与渲染层共用类型
+│   ├── components/   # 通用组件
+│   ├── pages/        # 页面组件（总览 / 设置）
 │   ├── router/       # 路由配置
 │   ├── stores/       # Pinia 状态管理
+│   ├── utils/        # 工具函数
 │   ├── styles/       # 全局样式
 │   ├── App.vue       # 根组件
 │   ├── main.ts       # 应用入口
 │   └── electron.d.ts # Electron 类型定义
+├── design/           # Logo 设计说明与概念方案
 ├── dist/             # 渲染进程构建输出
 ├── dist-electron/    # 主进程构建输出
 └── package.json      # 项目配置
