@@ -1,9 +1,13 @@
 import { createRequire } from 'node:module'
 
+import {
+  CURRENCY,
+  type ProviderBalance,
+  type ProviderCredential,
+} from '../../src/shared/provider'
 import { createBalanceDetails } from '../../src/shared/balance-detail'
-import { CURRENCY } from '../../src/shared/provider'
+import { BaseProviderAdapter } from './base'
 import { asNumber } from './parse'
-import type { ProviderAdapter } from './types'
 
 import type BssOpenApiType from '@alicloud/bssopenapi20171214'
 
@@ -14,16 +18,21 @@ const BssOpenApi = (require('@alicloud/bssopenapi20171214') as { default: typeof
 
 const ENDPOINT = 'business.aliyuncs.com'
 
-export const qwenAdapter: ProviderAdapter = {
-  id: 'qwen',
-  async fetchBalance(credential) {
+type AccountBalanceBody = NonNullable<
+  Awaited<ReturnType<BssOpenApiType['queryAccountBalance']>>['body']
+>
+
+export class QwenAdapter extends BaseProviderAdapter<AccountBalanceBody> {
+  readonly id = 'qwen' as const
+
+  protected async requestBalance(credential: ProviderCredential): Promise<AccountBalanceBody> {
     const client = new BssOpenApi({
       accessKeyId: credential.accessKeyId ?? '',
       accessKeySecret: credential.accessKeySecret ?? '',
       endpoint: ENDPOINT,
     })
 
-    let body: Awaited<ReturnType<BssOpenApiType['queryAccountBalance']>>['body']
+    let body: AccountBalanceBody | undefined
 
     try {
       const response = await client.queryAccountBalance()
@@ -36,15 +45,19 @@ export const qwenAdapter: ProviderAdapter = {
       throw new Error('阿里云未返回数据，请稍后重试')
     }
 
+    return body
+  }
+
+  protected parseBalance(body: AccountBalanceBody): ProviderBalance {
     if (body.success === false) {
       throw new Error(body.message ?? `阿里云返回错误码 ${body.code ?? '未知'}`)
     }
 
     const data = body.data ?? {}
-    const available = asNumber(data.availableAmount)
-    if (available === null) {
-      throw new Error('未返回余额数据，请确认 AccessKey 与账号状态')
-    }
+    const available = this.requireAvailable(
+      asNumber(data.availableAmount),
+      '请确认 AccessKey 与账号状态',
+    )
 
     // 千问没有赠送额度概念，赠送余额固定为 0
     const cash = asNumber(data.availableCashAmount) ?? 0
@@ -52,11 +65,9 @@ export const qwenAdapter: ProviderAdapter = {
     return {
       available,
       currency: data.currency ?? CURRENCY.CNY,
-      total: null,
-      used: null,
       details: createBalanceDetails(cash, 0),
     }
-  },
+  }
 }
 
 function readErrorMessage(error: unknown): string {
@@ -72,3 +83,5 @@ function readErrorMessage(error: unknown): string {
   if (typeof candidate.message === 'string' && candidate.message.length > 0) return candidate.message
   return '阿里云请求失败'
 }
+
+export const qwenAdapter = new QwenAdapter()

@@ -1,25 +1,30 @@
+import { CURRENCY, type ProviderBalance, type ProviderCredential } from '../../src/shared/provider'
 import { createBalanceDetails } from '../../src/shared/balance-detail'
-import { CURRENCY } from '../../src/shared/provider'
-import { requestJson } from './http'
+import { HttpJsonProviderAdapter } from './base'
 import { asNumber, asRecord } from './parse'
-import type { ProviderAdapter } from './types'
 
 const BALANCE_URL = 'https://platform.xiaomimimo.com/api/v1/balance'
 
-export const mimoAdapter: ProviderAdapter = {
-  id: 'mimo',
-  async fetchBalance(credential) {
-    const cookie = buildCookieHeader(credential.cookie ?? '')
+interface MimoBalancePayload {
+  code?: unknown
+  message?: unknown
+  data?: unknown
+}
 
-    const payload = asRecord(
-      await requestJson(BALANCE_URL, {
-        Cookie: cookie,
-        Accept: 'application/json',
-        'accept-language': 'en',
-        'User-Agent': 'LLM-Monitor/1.0',
-      }),
-    )
+export class MimoAdapter extends HttpJsonProviderAdapter<MimoBalancePayload> {
+  readonly id = 'mimo' as const
+  protected readonly balanceUrl = BALANCE_URL
 
+  protected buildHeaders(credential: ProviderCredential): Record<string, string> {
+    return {
+      Cookie: buildCookieHeader(credential.cookie ?? ''),
+      Accept: 'application/json',
+      'accept-language': 'en',
+      'User-Agent': 'LLM-Monitor/1.0',
+    }
+  }
+
+  protected parseBalance(payload: MimoBalancePayload): ProviderBalance {
     if (payload.code !== 0) {
       const message = payload.message
       throw new Error(
@@ -30,24 +35,22 @@ export const mimoAdapter: ProviderAdapter = {
     }
 
     const data = asRecord(payload.data)
-    const balance = asNumber(data.balance)
-    if (balance === null) {
-      throw new Error('未返回余额数据，请重新登录获取 Cookie')
-    }
+    const available = this.requireAvailable(asNumber(data.balance), '请重新登录获取 Cookie')
 
     const cash = asNumber(data.cashBalance) ?? 0
     const gift = asNumber(data.giftBalance) ?? 0
 
-    const currency = typeof data.currency === 'string' && data.currency.length > 0 ? data.currency : CURRENCY.CNY
+    const currency =
+      typeof data.currency === 'string' && data.currency.length > 0
+        ? data.currency
+        : CURRENCY.CNY
 
     return {
-      available: balance,
+      available,
       currency,
-      total: null,
-      used: null,
       details: createBalanceDetails(cash, gift),
     }
-  },
+  }
 }
 
 /**
@@ -61,3 +64,5 @@ function buildCookieHeader(raw: string): string {
   if (value.includes('api-platform_serviceToken=')) return value
   return `api-platform_serviceToken="${value.replace(/^"|"$/g, '')}"`
 }
+
+export const mimoAdapter = new MimoAdapter()

@@ -49,11 +49,7 @@ export interface ProviderBalance {
   available: number
   /** 币种，如 CNY */
   currency: string
-  /** 总额度，接口未提供时为 null */
-  total: number | null
-  /** 已消耗额度，接口未提供时为 null */
-  used: number | null
-  /** 补充明细，如充值余额、代金券余额等 */
+  /** 卡片明细，固定为「现金余额 / 赠送余额」两行 */
   details: ProviderBalanceDetail[]
 }
 

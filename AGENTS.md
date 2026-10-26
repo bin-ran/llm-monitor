@@ -22,6 +22,8 @@ electron/            # 主进程（Node 环境）
   refresh.ts         # 自动刷新调度 + 低余额通知
   tray.ts            # 托盘图标与菜单
   providers/         # 各平台余额适配器
+    base.ts          # BaseProviderAdapter / HttpJsonProviderAdapter 抽象基类
+    index.ts         # ProviderRegistry 注册表 + 错误归一化
 src/
   shared/provider.ts # 主进程与渲染层共用的领域模型
   shared/balance-detail.ts # 卡片明细规范（固定「现金余额 / 赠送余额」两行）
@@ -64,6 +66,7 @@ pnpm electron:build    # 打包安装包（electron-builder，输出到 release/
 - Windows 上 `safeStorage` 加密与应用名绑定，改动 `package.json` 的 `name` 会导致已保存的凭据无法解密。
 - 智谱只返回累计充值/累计赠送，不返回当前现金与赠送余额：现金余额取可用余额，赠送余额固定为 0。
 - 各平台鉴权失败文案不统一，统一收敛在 `electron/providers/errors.ts` 做「凭证失效」识别，新增平台时需同步补充规则与测试。
+- 新增平台适配器：继承 `HttpJsonProviderAdapter<响应结构>`（非 HTTP JSON 场景用 `BaseProviderAdapter<TRaw>`），在 `electron/providers/index.ts` 的注册表登记，并在 `PROVIDER_META` 补配置项与测试。
 
 ## 安全约束
 
