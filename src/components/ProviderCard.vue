@@ -45,14 +45,15 @@
       未配置凭据，无法查询余额
     </div>
 
-    <ul v-if="details.length > 0" class="flex flex-col gap-0.5">
+    <ul v-if="details.length > 0" class="flex shrink-0 flex-wrap items-center gap-1.5">
       <li
         v-for="detail in details"
         :key="detail.label"
-        class="flex justify-between gap-2 text-[0.7rem] text-gray-500 dark:text-gray-400"
+        class="inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[0.7rem] font-medium"
+        :class="detailToneClass(detail.label)"
       >
-        <span class="truncate">{{ detail.label }}</span>
-        <span class="shrink-0 font-medium text-gray-700 dark:text-gray-300">{{ detail.value }}</span>
+        <span class="opacity-70">{{ detail.label }}</span>
+        <span>{{ detail.value }}</span>
       </li>
     </ul>
 
@@ -70,9 +71,20 @@
 import { computed } from 'vue'
 
 import ProviderIcon from './ProviderIcon.vue'
+import { BALANCE_DETAIL_LABEL } from '../shared/balance-detail'
 import { PROVIDER_STATUS, type ProviderId } from '../shared/provider'
 import type { ProviderCardModel } from '../stores/providers'
 import { formatCurrencyUnit } from '../utils/format'
+
+/** 明细标签配色：现金用主色、赠送用强调色 */
+const DETAIL_TONE: Record<string, string> = {
+  [BALANCE_DETAIL_LABEL.CASH]: 'bg-teal-50 text-teal-700 dark:bg-teal-900/40 dark:text-teal-300',
+  [BALANCE_DETAIL_LABEL.GIFT]:
+    'bg-violet-50 text-violet-700 dark:bg-violet-900/40 dark:text-violet-300',
+}
+
+/** 未收录的明细标签回退为中性配色 */
+const DETAIL_TONE_FALLBACK = 'bg-gray-100 text-gray-600 dark:bg-gray-800 dark:text-gray-300'
 
 interface Props {
   card: ProviderCardModel
@@ -130,6 +142,10 @@ const currencyText = computed(() => {
 })
 
 const details = computed(() => props.card.result.balance?.details ?? [])
+
+function detailToneClass(label: string): string {
+  return DETAIL_TONE[label] ?? DETAIL_TONE_FALLBACK
+}
 
 function onOpenConsole(): void {
   emit('openConsole', props.card.id)
