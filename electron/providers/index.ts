@@ -70,11 +70,3 @@ export const providerRegistry = new ProviderRegistry([
   mimoAdapter,
   qwenAdapter,
 ])
-
-/** 便捷入口：主进程按平台查询余额 */
-export async function fetchProviderBalance(
-  providerId: ProviderId,
-  credential: ProviderCredential,
-): Promise<ProviderResult> {
-  return providerRegistry.fetchBalance(providerId, credential)
-}

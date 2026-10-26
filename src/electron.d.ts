@@ -12,7 +12,6 @@ export interface ILlmMonitorApi {
   saveCredential(providerId: ProviderId, values: ProviderCredential): Promise<AppConfigView>
   removeCredential(providerId: ProviderId): Promise<AppConfigView>
   updateSettings(patch: Partial<AppSettings>): Promise<AppConfigView>
-  fetchBalances(): Promise<ProviderResult[]>
   refreshBalances(): Promise<ProviderResult[]>
   refreshProvider(providerId: ProviderId): Promise<ProviderResult>
   openConsole(providerId: ProviderId): Promise<void>

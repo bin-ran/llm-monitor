@@ -1,13 +1,13 @@
 import { ipcMain, shell } from 'electron'
-import { PROVIDER_META, type ProviderCredential, type ProviderId } from '../src/shared/provider'
 import {
-  buildConfigView,
-  removeCredential,
-  saveCredential,
-  updateSettings,
-} from './config'
-import { openMimoLoginWindow } from './mimo-login'
-import { fetchAllBalances, refreshProvider, runAutoRefresh, startAutoRefresh } from './refresh'
+  PROVIDER_META,
+  type AppSettings,
+  type ProviderCredential,
+  type ProviderId,
+} from '../src/shared/provider'
+import { configStore } from './config'
+import { mimoLoginFlow } from './mimo-login'
+import { balanceRefresher } from './refresh'
 
 function isProviderId(value: unknown): value is ProviderId {
   return typeof value === 'string' && value in PROVIDER_META
@@ -25,7 +25,7 @@ function toCredential(value: unknown): ProviderCredential {
 }
 
 export function registerIpcHandlers(): void {
-  ipcMain.handle('config:get', () => buildConfigView())
+  ipcMain.handle('config:get', () => configStore.buildConfigView())
 
   ipcMain.handle('config:save-credential', async (_event, providerId: unknown, values: unknown) => {
     if (!isProviderId(providerId)) throw new Error('未知的平台标识')
@@ -38,29 +38,28 @@ export function registerIpcHandlers(): void {
       throw new Error(`请填写 ${requiredFields.map((field) => field.label).join(' 与 ')}`)
     }
 
-    await saveCredential(providerId, credential)
-    return buildConfigView()
+    await configStore.saveCredential(providerId, credential)
+    return configStore.buildConfigView()
   })
 
   ipcMain.handle('config:remove-credential', async (_event, providerId: unknown) => {
     if (!isProviderId(providerId)) throw new Error('未知的平台标识')
-    removeCredential(providerId)
-    return buildConfigView()
+    await configStore.removeCredential(providerId)
+    return configStore.buildConfigView()
   })
 
-  ipcMain.handle('config:update-settings', (_event, patch: unknown) => {
-    const settings = updateSettings((patch ?? {}) as Parameters<typeof updateSettings>[0])
-    startAutoRefresh()
-    return buildConfigView().then((config) => ({ ...config, settings }))
+  ipcMain.handle('config:update-settings', async (_event, patch: unknown) => {
+    const settings = await configStore.updateSettings((patch ?? {}) as Partial<AppSettings>)
+    balanceRefresher.start()
+    const config = await configStore.buildConfigView()
+    return { ...config, settings }
   })
 
-  ipcMain.handle('balances:fetch', () => fetchAllBalances())
-
-  ipcMain.handle('balances:refresh', () => runAutoRefresh())
+  ipcMain.handle('balances:refresh', () => balanceRefresher.runAutoRefresh())
 
   ipcMain.handle('balances:refresh-one', (_event, providerId: unknown) => {
     if (!isProviderId(providerId)) throw new Error('未知的平台标识')
-    return refreshProvider(providerId)
+    return balanceRefresher.refreshProvider(providerId)
   })
 
   ipcMain.handle('console:open', (_event, providerId: unknown) => {
@@ -68,5 +67,5 @@ export function registerIpcHandlers(): void {
     return shell.openExternal(PROVIDER_META[providerId].homepage)
   })
 
-  ipcMain.handle('login:mimo', () => openMimoLoginWindow())
+  ipcMain.handle('login:mimo', () => mimoLoginFlow.open())
 }

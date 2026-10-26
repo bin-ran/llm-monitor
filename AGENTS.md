@@ -17,10 +17,14 @@
 electron/            # 主进程（Node 环境）
   main.ts            # 应用入口：窗口、托盘、生命周期
   preload.ts         # contextBridge 暴露 window.llmMonitor
-  config.ts          # 配置读写，API Key 用 safeStorage 加密
+  config.ts          # 配置读写（ConfigStore），凭据加解密委托 secret-vault.ts
+  secret-vault.ts    # 凭据加解密（SecretVault，safeStorage）
   ipc.ts             # ipcMain 处理器
-  refresh.ts         # 自动刷新调度 + 低余额通知
-  tray.ts            # 托盘图标与菜单
+  refresh.ts         # 余额刷新调度（BalanceRefresher）
+  balance-notifier.ts # 低余额 / 凭证失效通知（BalanceNotifier）
+  tray.ts            # 托盘图标与菜单（TrayController）
+  security.ts        # 导航 / 外链 / 权限策略（AppSecurity）
+  mimo-login.ts      # 小米 MiMo 网页登录抓 Cookie（MimoLoginFlow）
   providers/         # 各平台余额适配器
     base.ts          # BaseProviderAdapter / HttpJsonProviderAdapter 抽象基类
     index.ts         # ProviderRegistry 注册表 + 错误归一化
@@ -65,6 +69,7 @@ pnpm electron:build    # 打包安装包（electron-builder，输出到 release/
 - 小米 MiMo 用 `persist:mimo` 独立会话分区做网页登录抓 Cookie，Cookie 过期需重新登录。
 - Windows 上 `safeStorage` 加密与应用名绑定，改动 `package.json` 的 `name` 会导致已保存的凭据无法解密。
 - 智谱只返回累计充值/累计赠送，不返回当前现金与赠送余额：现金余额取可用余额，赠送余额固定为 0。
+- 配置写入统一走 `ConfigStore` 的串行化事务（`runExclusive`），不要绕过它直接写 config.json，否则会覆盖并发的凭据保存或密钥轮换。
 - 各平台鉴权失败文案不统一，统一收敛在 `electron/providers/errors.ts` 做「凭证失效」识别，新增平台时需同步补充规则与测试。
 - 新增平台适配器：继承 `HttpJsonProviderAdapter<响应结构>`（非 HTTP JSON 场景用 `BaseProviderAdapter<TRaw>`），在 `electron/providers/index.ts` 的注册表登记，并在 `PROVIDER_META` 补配置项与测试。
 
@@ -72,6 +77,6 @@ pnpm electron:build    # 打包安装包（electron-builder，输出到 release/
 
 - CSP 写在 `index.html` 的 meta 中（`script-src 'self'`，禁止内联脚本与 eval）。因此**不能在 index.html 里写内联 `<script>`**，需要首屏脚本时放到 `public/` 下的独立文件（如 `theme-init.js`）。
 - 字体通过 `@fontsource` 本地打包（`src/main.ts` 引入），不使用 Google Fonts / jsDelivr 等 CDN，保证 CSP 可锁死为 `'self'`，也保证离线可用。
-- `electron/security.ts` 统一挂 `web-contents-created`：主窗口只能停留在自身渲染产物，登录窗口只能在小米账号域名内跳转，禁止 `<webview>`、拦截 `window.open`、外链仅放行 http(s)、渲染层权限请求一律拒绝。
+- `electron/security.ts` 的 `AppSecurity.install()` 统一挂 `web-contents-created`：主窗口只能停留在自身渲染产物，登录窗口只能在小米账号域名内跳转，禁止 `<webview>`、拦截 `window.open`、外链仅放行 http(s)、渲染层权限请求一律拒绝。
 - 新增需要网页登录的平台时，登录窗口必须使用 `LOGIN_PARTITION` 会话分区，并把域名加入 `security.ts` 的白名单，否则跳转会被拦截。
 - 仓库不配置远端同步推送，提交后由使用者自行推送。

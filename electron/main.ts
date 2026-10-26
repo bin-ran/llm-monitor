@@ -1,11 +1,11 @@
 import { app, BrowserWindow, screen } from 'electron'
 import { fileURLToPath } from 'node:url'
 import path from 'node:path'
-import { readWindowBounds, saveWindowBounds, type WindowBounds } from './config'
+import { configStore, type WindowBounds } from './config'
 import { registerIpcHandlers } from './ipc'
-import { setMainWindow, startAutoRefresh, stopAutoRefresh } from './refresh'
-import { installAppSecurity } from './security'
-import { createTray } from './tray'
+import { balanceRefresher } from './refresh'
+import { appSecurity } from './security'
+import { trayController } from './tray'
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
 
@@ -20,7 +20,7 @@ process.env.VITE_PUBLIC = VITE_DEV_SERVER_URL
   : RENDERER_DIST
 
 // 先安装导航/窗口安全策略，确保任何 webContents 创建时就已生效
-installAppSecurity()
+appSecurity.install()
 
 const DEFAULT_WIDTH = 780
 const DEFAULT_HEIGHT = 460
@@ -37,7 +37,7 @@ function getWindow(): BrowserWindow | null {
 
 /** 还原上次窗口位置；显示器变动导致位置不可用时回落到默认尺寸居中 */
 function resolveWindowBounds(): WindowBounds {
-  const saved = readWindowBounds()
+  const saved = configStore.readWindowBounds()
   if (saved && isBoundsVisible(saved)) return saved
 
   return { ...getCenteredPosition(), width: DEFAULT_WIDTH, height: DEFAULT_HEIGHT }
@@ -69,7 +69,7 @@ function scheduleSaveBounds(): void {
   saveBoundsTimer = setTimeout(() => {
     saveBoundsTimer = null
     if (!win || win.isDestroyed()) return
-    saveWindowBounds(win.getBounds())
+    void configStore.saveWindowBounds(win.getBounds())
   }, 400)
 }
 
@@ -123,7 +123,7 @@ function createWindow(): void {
   win.on('close', (event) => {
     // 关闭前兜底保存当前位置，避免防抖未触发就隐藏
     if (win && !win.isDestroyed() && !win.isMinimized()) {
-      saveWindowBounds(win.getBounds())
+      void configStore.saveWindowBounds(win.getBounds())
     }
     if (isQuitting) return
     // 关闭时收起到托盘，保持后台自动刷新
@@ -133,7 +133,7 @@ function createWindow(): void {
 
   win.on('closed', () => {
     win = null
-    setMainWindow(null)
+    balanceRefresher.setMainWindow(null)
   })
 }
 
@@ -155,21 +155,21 @@ if (!app.requestSingleInstanceLock()) {
   app.whenReady().then(() => {
     registerIpcHandlers()
     createWindow()
-    setMainWindow(win)
-    createTray(getWindow)
-    startAutoRefresh()
+    balanceRefresher.setMainWindow(win)
+    trayController.create(getWindow)
+    balanceRefresher.start()
   })
 
   app.on('activate', () => {
     if (BrowserWindow.getAllWindows().length === 0) {
       createWindow()
-      setMainWindow(win)
+      balanceRefresher.setMainWindow(win)
     }
   })
 
   app.on('before-quit', () => {
     isQuitting = true
-    stopAutoRefresh()
+    balanceRefresher.stop()
   })
 
   app.on('window-all-closed', () => {

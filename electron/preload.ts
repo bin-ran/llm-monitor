@@ -22,8 +22,6 @@ const api = {
   updateSettings: (patch: Partial<AppSettings>): Promise<AppConfigView> =>
     ipcRenderer.invoke('config:update-settings', patch),
 
-  fetchBalances: (): Promise<ProviderResult[]> => ipcRenderer.invoke('balances:fetch'),
-
   refreshBalances: (): Promise<ProviderResult[]> => ipcRenderer.invoke('balances:refresh'),
 
   /** 只刷新指定平台；也用于设置页的「测试连接」 */
