@@ -99,7 +99,19 @@ function createWindow(): void {
 
   if (VITE_DEV_SERVER_URL) {
     win.loadURL(VITE_DEV_SERVER_URL)
-    win.webContents.openDevTools()
+    // 开发模式不自动弹出 DevTools，需要时用 F12 / Ctrl+Shift+I 手动打开
+    win.webContents.on('before-input-event', (event, input) => {
+      if (input.type !== 'keyDown') return
+
+      const isF12 = input.key === 'F12'
+      const isToggleShortcut = input.control && input.shift && input.key.toLowerCase() === 'i'
+      if (!isF12 && !isToggleShortcut) return
+
+      event.preventDefault()
+      if (win && !win.isDestroyed()) {
+        win.webContents.toggleDevTools()
+      }
+    })
   } else {
     win.loadFile(path.join(RENDERER_DIST, 'index.html'))
   }
