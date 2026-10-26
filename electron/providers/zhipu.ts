@@ -35,7 +35,6 @@ export const zhipuAdapter: ProviderAdapter = {
     const frozen = asNumber(data.frozenBalance) ?? 0
 
     const details = [
-      { label: '累计充值', value: formatAmount(recharge) },
       { label: '赠送金额', value: formatAmount(granted) },
       { label: '累计消费', value: formatOptionalAmount(spent) },
     ]
