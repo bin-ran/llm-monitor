@@ -21,7 +21,6 @@ export interface ProviderCardModel {
   result: ProviderResult
   hasCredential: boolean
   credentialPreview: string
-  threshold: number | null
 }
 
 function createInitialResults(): Record<ProviderId, ProviderResult> {
@@ -65,7 +64,6 @@ export const useProvidersStore = defineStore('providers', () => {
     PROVIDER_IDS.map((providerId) => {
       const meta = PROVIDER_META[providerId]
       const credentialState = credentialStates.value[providerId]
-      const threshold = settings.value.thresholds[providerId]
 
       return {
         id: providerId,
@@ -74,7 +72,6 @@ export const useProvidersStore = defineStore('providers', () => {
         result: results.value[providerId],
         hasCredential: credentialState.hasCredential,
         credentialPreview: credentialState.credentialPreview,
-        threshold: threshold ?? null,
       }
     }),
   )
