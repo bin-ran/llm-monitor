@@ -30,7 +30,7 @@ electron/            # 主进程（Node 环境）
     index.ts         # ProviderRegistry 注册表 + 错误归一化
 src/
   shared/provider.ts # 主进程与渲染层共用的领域模型
-  shared/balance-detail.ts # 卡片明细规范（固定「现金余额 / 赠送余额」两行）
+  shared/balance-detail.ts # 卡片明细规范（现金余额 + 赠送余额标签，赠送为 0 时不展示）
   stores/providers.ts
   components/ProviderCard.vue
   pages/index.vue    # 总览仪表盘
@@ -59,7 +59,7 @@ pnpm electron:build    # 打包安装包（electron-builder，输出到 release/
 | 小米 MiMo | `GET https://platform.xiaomimimo.com/api/v1/balance` | 登录态 Cookie | 总余额、现金、赠送 |
 | 千问AI平台 | 阿里云 BSS `QueryAccountBalance`（`business.aliyuncs.com`） | RAM AccessKey | 可用额度、现金可用 |
 
-卡片明细统一只展示「现金余额」「赠送余额」两行（`src/shared/balance-detail.ts` 的 `createBalanceDetails`），接口没有对应字段时按 `0.00` 展示。
+卡片明细统一由 `src/shared/balance-detail.ts` 的 `createBalanceDetails` 生成：现金余额固定展示，赠送余额为 0（接口无该字段或平台无赠送概念）时不展示赠送标签。
 
 ## 约束与注意事项
 

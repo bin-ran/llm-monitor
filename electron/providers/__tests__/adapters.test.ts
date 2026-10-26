@@ -21,7 +21,7 @@ afterEach(() => {
 })
 
 describe('deepseek 适配器', () => {
-  it('解析总额与赠送/充值明细', async () => {
+  it('解析可用余额，赠送为 0 时不带赠送明细', async () => {
     mockFetchJson({
       is_available: true,
       balance_infos: [
@@ -33,10 +33,8 @@ describe('deepseek 适配器', () => {
 
     expect(balance.available).toBe(42.25)
     expect(balance.currency).toBe('CNY')
-    expect(balance.details).toEqual([
-      { label: '现金余额', value: '42.25' },
-      { label: '赠送余额', value: '0.00' },
-    ])
+    // 赠送余额为 0，不展示赠送标签
+    expect(balance.details).toEqual([{ label: '现金余额', value: '42.25' }])
   })
 
   it('缺少余额字段时抛错', async () => {
@@ -57,10 +55,7 @@ describe('kimi 适配器', () => {
     const balance = await kimiAdapter.fetchBalance({ apiKey: 'sk-test' })
 
     expect(balance.available).toBeCloseTo(29.09433)
-    expect(balance.details).toEqual([
-      { label: '现金余额', value: '29.09' },
-      { label: '赠送余额', value: '0.00' },
-    ])
+    expect(balance.details).toEqual([{ label: '现金余额', value: '29.09' }])
   })
 
   it('status 为 false 时抛错', async () => {
@@ -85,11 +80,8 @@ describe('智谱 GLM 适配器', () => {
     const balance = await zhipuAdapter.fetchBalance({ apiKey: 'test.key' })
 
     expect(balance.available).toBeCloseTo(35.59)
-    // 智谱只返回累计充值/赠送，没有当前现金与赠送余额，现金取可用余额、赠送固定为 0
-    expect(balance.details).toEqual([
-      { label: '现金余额', value: '35.59' },
-      { label: '赠送余额', value: '0.00' },
-    ])
+    // 智谱只返回累计充值/赠送，没有当前现金与赠送余额，现金取可用余额、赠送为 0 不展示
+    expect(balance.details).toEqual([{ label: '现金余额', value: '35.59' }])
   })
 })
 
