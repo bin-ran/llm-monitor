@@ -54,7 +54,7 @@
 
     <div v-else class="grid grid-cols-3 gap-3">
       <ProviderCard
-        v-for="card in store.cards"
+        v-for="card in store.configuredCards"
         :key="card.id"
         :card="card"
         @open-console="onOpenConsole"
@@ -89,7 +89,7 @@ const intervalText = computed(() => `${store.settings.refreshIntervalSeconds} ç§
 const lastUpdatedText = computed(() => formatTime(store.lastUpdatedAt))
 
 const invalidCredentialLabels = computed(() =>
-  store.cards
+  store.configuredCards
     .filter((card) => card.result.status === PROVIDER_STATUS.INVALID_CREDENTIAL)
     .map((card) => card.label),
 )

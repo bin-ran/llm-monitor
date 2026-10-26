@@ -79,9 +79,12 @@ export const useProvidersStore = defineStore('providers', () => {
     }),
   )
 
-  const configuredCount = computed(
-    () => PROVIDER_IDS.filter((id) => credentialStates.value[id].hasCredential).length,
+  /** 仅已配置凭据的平台，总览页不展示未配置的平台卡片 */
+  const configuredCards = computed<ProviderCardModel[]>(() =>
+    cards.value.filter((card) => card.hasCredential),
   )
+
+  const configuredCount = computed(() => configuredCards.value.length)
 
   function applyConfig(config: AppConfigView): void {
     for (const provider of config.providers) {
@@ -163,6 +166,7 @@ export const useProvidersStore = defineStore('providers', () => {
     isRefreshing,
     lastUpdatedAt,
     cards,
+    configuredCards,
     configuredCount,
     init,
     refresh,
