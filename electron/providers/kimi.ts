@@ -1,6 +1,7 @@
+import { createBalanceDetails } from '../../src/shared/balance-detail'
 import { CURRENCY } from '../../src/shared/provider'
 import { requestJson } from './http'
-import { asNumber, asRecord, formatAmount } from './parse'
+import { asNumber, asRecord } from './parse'
 import type { ProviderAdapter } from './types'
 
 const BALANCE_URL = 'https://api.moonshot.cn/v1/users/me/balance'
@@ -34,10 +35,7 @@ export const kimiAdapter: ProviderAdapter = {
       currency: CURRENCY.CNY,
       total: voucher + cash,
       used: null,
-      details: [
-        { label: '代金券余额', value: formatAmount(voucher) },
-        { label: '现金余额', value: formatAmount(cash) },
-      ],
+      details: createBalanceDetails(cash, voucher),
     }
   },
 }

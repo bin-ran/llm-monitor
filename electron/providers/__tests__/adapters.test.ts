@@ -16,22 +16,6 @@ function mockFetchJson(payload: unknown, init: { status?: number } = {}): void {
   )
 }
 
-/** 按 URL 返回不同响应，用于多接口场景（如智谱余额 + 套餐额度） */
-function mockFetchByUrl(handlers: Record<string, unknown>): void {
-  vi.stubGlobal(
-    'fetch',
-    vi.fn(async (input: string | URL) => {
-      const url = typeof input === 'string' ? input : input.toString()
-      for (const [fragment, payload] of Object.entries(handlers)) {
-        if (url.includes(fragment)) {
-          return new Response(JSON.stringify(payload), { status: 200 })
-        }
-      }
-      return new Response('{}', { status: 404 })
-    }),
-  )
-}
-
 afterEach(() => {
   vi.unstubAllGlobals()
 })
@@ -50,7 +34,7 @@ describe('deepseek 适配器', () => {
     expect(balance.available).toBe(42.25)
     expect(balance.currency).toBe('CNY')
     expect(balance.details).toEqual([
-      { label: '充值余额', value: '42.25' },
+      { label: '现金余额', value: '42.25' },
       { label: '赠送余额', value: '0.00' },
     ])
   })
@@ -74,8 +58,8 @@ describe('kimi 适配器', () => {
 
     expect(balance.available).toBeCloseTo(29.09433)
     expect(balance.details).toEqual([
-      { label: '代金券余额', value: '0.00' },
       { label: '现金余额', value: '29.09' },
+      { label: '赠送余额', value: '0.00' },
     ])
   })
 
@@ -86,54 +70,26 @@ describe('kimi 适配器', () => {
 })
 
 describe('智谱 GLM 适配器', () => {
-  it('解析账户余额并合并 Coding Plan 额度', async () => {
-    mockFetchByUrl({
-      'query-customer-account-report': {
-        code: 200,
-        success: true,
-        data: {
-          balance: 35.59,
-          availableBalance: 35.59,
-          rechargeAmount: 135,
-          giveAmount: 4.88,
-          totalSpendAmount: 104.29,
-          frozenBalance: 0,
-        },
-      },
-      'quota/limit': {
-        code: 200,
-        success: true,
-        data: {
-          limits: [
-            { type: 'TIME_LIMIT', usage: 1000, remaining: 928 },
-            { type: 'TOKENS_LIMIT', percentage: 44 },
-          ],
-        },
+  it('现金取可用余额，赠送固定为 0', async () => {
+    mockFetchJson({
+      code: 200,
+      success: true,
+      data: {
+        balance: 35.59,
+        availableBalance: 35.59,
+        rechargeAmount: 135,
+        giveAmount: 4.88,
       },
     })
 
     const balance = await zhipuAdapter.fetchBalance({ apiKey: 'test.key' })
 
     expect(balance.available).toBeCloseTo(35.59)
-    expect(balance.used).toBeCloseTo(104.29)
-    expect(balance.details).toContainEqual({ label: '5 小时窗口', value: '928 / 1000' })
-    expect(balance.details).toContainEqual({ label: '周额度剩余', value: '56%' })
-  })
-
-  it('未订阅套餐时忽略额度接口错误', async () => {
-    mockFetchByUrl({
-      'query-customer-account-report': {
-        code: 200,
-        success: true,
-        data: { availableBalance: 10, rechargeAmount: 20, giveAmount: 0, totalSpendAmount: 10 },
-      },
-      'quota/limit': { code: 500, success: false, msg: '当前用户不存在coding plan' },
-    })
-
-    const balance = await zhipuAdapter.fetchBalance({ apiKey: 'test.key' })
-
-    expect(balance.available).toBe(10)
-    expect(balance.details.some((item) => item.label.includes('窗口'))).toBe(false)
+    // 智谱只返回累计充值/赠送，没有当前现金与赠送余额，现金取可用余额、赠送固定为 0
+    expect(balance.details).toEqual([
+      { label: '现金余额', value: '35.59' },
+      { label: '赠送余额', value: '0.00' },
+    ])
   })
 })
 
@@ -153,7 +109,7 @@ describe('MiniMax 适配器', () => {
     expect(balance.available).toBeCloseTo(57.18)
     expect(balance.details).toEqual([
       { label: '现金余额', value: '50.00' },
-      { label: '代金券', value: '7.18' },
+      { label: '赠送余额', value: '7.18' },
     ])
   })
 

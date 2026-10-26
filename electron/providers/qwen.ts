@@ -1,7 +1,8 @@
 import { createRequire } from 'node:module'
 
+import { createBalanceDetails } from '../../src/shared/balance-detail'
 import { CURRENCY } from '../../src/shared/provider'
-import { asNumber, formatOptionalAmount } from './parse'
+import { asNumber } from './parse'
 import type { ProviderAdapter } from './types'
 
 import type BssOpenApiType from '@alicloud/bssopenapi20171214'
@@ -45,27 +46,15 @@ export const qwenAdapter: ProviderAdapter = {
       throw new Error('未返回余额数据，请确认 AccessKey 与账号状态')
     }
 
-    const details = [
-      { label: '现金可用', value: formatOptionalAmount(asNumber(data.availableCashAmount)) },
-      { label: '授信额度', value: formatOptionalAmount(asNumber(data.creditAmount)) },
-    ]
-
-    const mybankCredit = asNumber(data.mybankCreditAmount)
-    if (mybankCredit !== null && mybankCredit > 0) {
-      details.push({ label: '网商授信', value: formatOptionalAmount(mybankCredit) })
-    }
-
-    const quotaLimit = asNumber(data.quotaLimit)
-    if (quotaLimit !== null && quotaLimit > 0) {
-      details.push({ label: '生态额度', value: formatOptionalAmount(quotaLimit) })
-    }
+    // 千问没有赠送额度概念，赠送余额固定为 0
+    const cash = asNumber(data.availableCashAmount) ?? 0
 
     return {
       available,
       currency: data.currency ?? CURRENCY.CNY,
       total: null,
       used: null,
-      details,
+      details: createBalanceDetails(cash, 0),
     }
   },
 }

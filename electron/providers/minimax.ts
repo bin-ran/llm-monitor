@@ -1,6 +1,7 @@
+import { createBalanceDetails } from '../../src/shared/balance-detail'
 import { CURRENCY } from '../../src/shared/provider'
 import { requestJson } from './http'
-import { asNumber, asRecord, formatAmount } from './parse'
+import { asNumber, asRecord } from './parse'
 import type { ProviderAdapter } from './types'
 
 const BALANCE_URL = 'https://api.minimaxi.com/account/query_balance'
@@ -34,28 +35,13 @@ export const minimaxAdapter: ProviderAdapter = {
 
     const cash = asNumber(payload.cash_balance) ?? 0
     const voucher = asNumber(payload.voucher_balance) ?? 0
-    const credit = asNumber(payload.credit_balance) ?? 0
-    const owed = asNumber(payload.owed_amount) ?? 0
-
-    const details = [
-      { label: '现金余额', value: formatAmount(cash) },
-      { label: '代金券', value: formatAmount(voucher) },
-    ]
-
-    if (credit > 0) {
-      details.push({ label: '授信额度', value: formatAmount(credit) })
-    }
-
-    if (owed > 0) {
-      details.push({ label: '欠费金额', value: formatAmount(owed) })
-    }
 
     return {
       available,
       currency: CURRENCY.CNY,
-      total: cash + voucher + credit,
+      total: cash + voucher,
       used: null,
-      details,
+      details: createBalanceDetails(cash, voucher),
     }
   },
 }

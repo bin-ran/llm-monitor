@@ -10,3 +10,8 @@ const CURRENCY_UNIT_LABELS: Record<string, string> = {
 export function formatCurrencyUnit(currency: string): string {
   return CURRENCY_UNIT_LABELS[currency] ?? currency
 }
+
+/** 金额统一保留两位小数 */
+export function formatAmount(value: number): string {
+  return value.toFixed(2)
+}

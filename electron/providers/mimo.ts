@@ -1,6 +1,7 @@
+import { createBalanceDetails } from '../../src/shared/balance-detail'
 import { CURRENCY } from '../../src/shared/provider'
 import { requestJson } from './http'
-import { asNumber, asRecord, formatAmount, formatOptionalAmount } from './parse'
+import { asNumber, asRecord } from './parse'
 import type { ProviderAdapter } from './types'
 
 const BALANCE_URL = 'https://platform.xiaomimimo.com/api/v1/balance'
@@ -34,18 +35,8 @@ export const mimoAdapter: ProviderAdapter = {
       throw new Error('未返回余额数据，请重新登录获取 Cookie')
     }
 
-    const cash = asNumber(data.cashBalance)
-    const gift = asNumber(data.giftBalance)
-    const frozen = asNumber(data.frozenBalance)
-
-    const details = [
-      { label: '现金余额', value: formatOptionalAmount(cash) },
-      { label: '赠送余额', value: formatOptionalAmount(gift) },
-    ]
-
-    if (frozen !== null && frozen > 0) {
-      details.push({ label: '冻结余额', value: formatAmount(frozen) })
-    }
+    const cash = asNumber(data.cashBalance) ?? 0
+    const gift = asNumber(data.giftBalance) ?? 0
 
     const currency = typeof data.currency === 'string' && data.currency.length > 0 ? data.currency : CURRENCY.CNY
 
@@ -54,7 +45,7 @@ export const mimoAdapter: ProviderAdapter = {
       currency,
       total: null,
       used: null,
-      details,
+      details: createBalanceDetails(cash, gift),
     }
   },
 }

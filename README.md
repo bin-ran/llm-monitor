@@ -18,10 +18,10 @@
 | --- | --- | --- | --- |
 | DeepSeek | `GET api.deepseek.com/user/balance` | API Key | 总额、充值余额、赠送余额 |
 | Kimi | `GET api.moonshot.cn/v1/users/me/balance` | API Key | 可用余额、代金券、现金余额 |
-| 智谱 GLM | `GET www.bigmodel.cn/api/biz/account/query-customer-account-report` | API Key | 可用余额、充值、赠送、累计消费、Coding Plan 额度 |
-| MiniMax | `GET api.minimaxi.com/account/query_balance` | API Key | 可用余额、现金、代金券、授信、欠费 |
-| 小米 MiMo | `GET platform.xiaomimimo.com/api/v1/balance` | 登录态 Cookie | 总余额、现金、赠送、冻结 |
-| 千问AI平台 | 阿里云 BSS `QueryAccountBalance` | RAM AccessKey | 可用额度、现金可用、授信、欠费 |
+| 智谱 GLM | `GET www.bigmodel.cn/api/biz/account/query-customer-account-report` | API Key | 可用余额 |
+| MiniMax | `GET api.minimaxi.com/account/query_balance` | API Key | 可用余额、现金、代金券 |
+| 小米 MiMo | `GET platform.xiaomimimo.com/api/v1/balance` | 登录态 Cookie | 总余额、现金、赠送 |
+| 千问AI平台 | 阿里云 BSS `QueryAccountBalance` | RAM AccessKey | 可用额度、现金可用 |
 
 > **小米 MiMo**：官方未开放余额接口，只能用登录态 Cookie。设置页点「登录获取」会弹出登录窗口，登录成功后自动抓取并加密保存 Cookie。
 > **千问AI平台**：模型 API Key 无法查询余额，需要阿里云 RAM 密钥（`bssapi:QueryAccountBalance` 只读权限）；签名交由官方 SDK `@alicloud/bssopenapi20171214` 处理。

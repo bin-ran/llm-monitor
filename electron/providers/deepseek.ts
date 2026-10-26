@@ -1,6 +1,7 @@
+import { createBalanceDetails } from '../../src/shared/balance-detail'
 import { CURRENCY } from '../../src/shared/provider'
 import { requestJson } from './http'
-import { asArray, asNumber, asRecord, formatAmount } from './parse'
+import { asArray, asNumber, asRecord } from './parse'
 import type { ProviderAdapter } from './types'
 
 const BALANCE_URL = 'https://api.deepseek.com/user/balance'
@@ -29,10 +30,7 @@ export const deepseekAdapter: ProviderAdapter = {
       currency: CURRENCY.CNY,
       total: granted + toppedUp,
       used: null,
-      details: [
-        { label: '充值余额', value: formatAmount(toppedUp) },
-        { label: '赠送余额', value: formatAmount(granted) },
-      ],
+      details: createBalanceDetails(toppedUp, granted),
     }
   },
 }

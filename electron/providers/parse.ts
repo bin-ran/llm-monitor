@@ -18,15 +18,3 @@ export function asNumber(value: unknown): number | null {
   }
   return null
 }
-
-export function asString(value: unknown): string {
-  return typeof value === 'string' ? value : ''
-}
-
-export function formatAmount(value: number): string {
-  return value.toFixed(2)
-}
-
-export function formatOptionalAmount(value: number | null): string {
-  return value === null ? '—' : formatAmount(value)
-}

@@ -24,6 +24,7 @@ electron/            # 主进程（Node 环境）
   providers/         # 各平台余额适配器
 src/
   shared/provider.ts # 主进程与渲染层共用的领域模型
+  shared/balance-detail.ts # 卡片明细规范（固定「现金余额 / 赠送余额」两行）
   stores/providers.ts
   components/ProviderCard.vue
   pages/index.vue    # 总览仪表盘
@@ -45,12 +46,14 @@ pnpm electron:build    # 打包安装包（electron-builder，输出到 release/
 
 | 平台 | 接口 | 凭据 | 可用字段 |
 | --- | --- | --- | --- |
-| DeepSeek | `GET https://api.deepseek.com/user/balance` | API Key | 总额、充值余额、赠送余额 |
+| DeepSeek | `GET https://api.deepseek.com/user/balance` | API Key | 可用余额、充值余额、赠送余额 |
 | Kimi | `GET https://api.moonshot.cn/v1/users/me/balance` | API Key | 可用余额、代金券、现金 |
-| 智谱 GLM | `GET https://www.bigmodel.cn/api/biz/account/query-customer-account-report` | API Key | 可用余额、充值、赠送、累计消费、Coding Plan 额度 |
-| MiniMax | `GET https://api.minimaxi.com/account/query_balance` | API Key | 可用余额、现金、代金券、授信、欠费 |
-| 小米 MiMo | `GET https://platform.xiaomimimo.com/api/v1/balance` | 登录态 Cookie | 总余额、现金、赠送、冻结 |
-| 千问AI平台 | 阿里云 BSS `QueryAccountBalance`（`business.aliyuncs.com`） | RAM AccessKey | 可用额度、现金可用、授信、欠费 |
+| 智谱 GLM | `GET https://www.bigmodel.cn/api/biz/account/query-customer-account-report` | API Key | 可用余额 |
+| MiniMax | `GET https://api.minimaxi.com/account/query_balance` | API Key | 可用余额、现金、代金券 |
+| 小米 MiMo | `GET https://platform.xiaomimimo.com/api/v1/balance` | 登录态 Cookie | 总余额、现金、赠送 |
+| 千问AI平台 | 阿里云 BSS `QueryAccountBalance`（`business.aliyuncs.com`） | RAM AccessKey | 可用额度、现金可用 |
+
+卡片明细统一只展示「现金余额」「赠送余额」两行（`src/shared/balance-detail.ts` 的 `createBalanceDetails`），接口没有对应字段时按 `0.00` 展示。
 
 ## 约束与注意事项
 
@@ -59,7 +62,7 @@ pnpm electron:build    # 打包安装包（electron-builder，输出到 release/
 - 阿里云 BSS 签名必须走官方 SDK `@alicloud/bssopenapi20171214`（ACS3-HMAC-SHA256），手写旧版 HMAC-SHA1 已被淘汰；SDK 为 CommonJS，主进程用 `createRequire` 加载。
 - 小米 MiMo 用 `persist:mimo` 独立会话分区做网页登录抓 Cookie，Cookie 过期需重新登录。
 - Windows 上 `safeStorage` 加密与应用名绑定，改动 `package.json` 的 `name` 会导致已保存的凭据无法解密。
-- 智谱的 Coding Plan 额度属于非公开接口，可能随时变更，适配器已做失败降级。
+- 智谱只返回累计充值/累计赠送，不返回当前现金与赠送余额：现金余额取可用余额，赠送余额固定为 0。
 - 各平台鉴权失败文案不统一，统一收敛在 `electron/providers/errors.ts` 做「凭证失效」识别，新增平台时需同步补充规则与测试。
 
 ## 安全约束
