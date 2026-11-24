@@ -96,7 +96,7 @@
           <span class="h-5 w-[3px] bg-primary" />
           <h2 class="text-[14px] font-semibold">关于</h2>
         </div>
-        <p class="mt-4 pl-6 text-[11px] text-sub">LLM Monitor v0.0.2 · 凭据仅保存在本机</p>
+        <p class="mt-4 pl-6 text-[11px] text-sub">LLM Monitor v{{ APP_VERSION }} · 凭据仅保存在本机</p>
       </section>
     </div>
   </AppShell>
@@ -107,6 +107,7 @@ import { computed, onMounted, ref } from 'vue'
 
 import AppShell from '../components/AppShell.vue'
 import { REFRESH_INTERVAL_OPTIONS } from '../shared/provider'
+import { APP_VERSION } from '../shared/version'
 import { useProvidersStore } from '../stores/providers'
 
 const store = useProvidersStore()

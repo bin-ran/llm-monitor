@@ -62,7 +62,7 @@
         </RouterLink>
       </nav>
 
-      <span class="mt-auto px-1 pb-5 text-center text-[9px] text-mute">v0.0.2</span>
+      <span class="mt-auto px-1 pb-5 text-center text-[9px] text-mute">v{{ APP_VERSION }}</span>
     </aside>
 
     <main class="flex min-h-0 min-w-0 flex-1 flex-col">
@@ -81,6 +81,7 @@
 import { RouterLink, useRoute } from 'vue-router'
 
 import ThemeSwitch from './ThemeSwitch.vue'
+import { APP_VERSION } from '../shared/version'
 
 const NAV_ICON = {
   OVERVIEW: 'overview',
