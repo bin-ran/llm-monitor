@@ -13,6 +13,9 @@ minimumReleaseAgeExclude:
   - '@vue/language-core@3.3.8'
   - vue-tsc@3.3.8
   - '@iconify-json/carbon@1.2.29'
+  - '@vueuse/core@15.1.0'
+  - '@vueuse/metadata@15.1.0'
+  - '@vueuse/shared@15.1.0'
 onlyBuiltDependencies:
   - electron
   - electron-winstaller

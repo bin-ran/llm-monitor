@@ -1,6 +1,7 @@
 import { app } from 'electron'
 import fs from 'node:fs'
 import path from 'node:path'
+import { decryptBackup, encryptBackup, type BackupData } from './backup'
 import {
   DEFAULT_SETTINGS,
   PROVIDER_IDS,
@@ -143,6 +144,47 @@ export class ConfigStore {
     }
 
     return credential
+  }
+
+  /** 导出密码加密备份：凭据先解密到内存，再由备份密码重新加密 */
+  async exportBackup(password: string): Promise<string> {
+    const config = this.read()
+    const credentials: BackupData['credentials'] = {}
+
+    for (const providerId of PROVIDER_IDS) {
+      const credential = await this.readCredential(providerId, config)
+      if (credential && this.isCredentialComplete(providerId, credential)) {
+        credentials[providerId] = credential
+      }
+    }
+
+    return encryptBackup({ settings: this.buildSettings(config), credentials }, password)
+  }
+
+  /** 导入备份：校验内容后用本机密钥重新加密凭据，并替换设置 */
+  async importBackup(text: string, password: string): Promise<AppConfigView> {
+    const data = sanitizeBackupData(decryptBackup(text, password))
+    const credentials: StoredCredentials = {}
+
+    // 加密放在临界区外，避免长时间占用写入锁
+    for (const [providerId, fields] of Object.entries(data.credentials)) {
+      const stored: Record<string, string> = {}
+      for (const [field, value] of Object.entries(fields ?? {})) {
+        stored[field] = await this.vault.encrypt(value)
+      }
+      credentials[providerId as ProviderId] = stored
+    }
+
+    await this.runExclusive(() => {
+      const config = this.read()
+      config.credentials = credentials
+      config.autoRefreshEnabled = data.settings.autoRefreshEnabled
+      config.refreshIntervalSeconds = data.settings.refreshIntervalSeconds
+      config.thresholds = { ...data.settings.thresholds }
+      this.write(config)
+    })
+
+    return this.buildConfigView()
   }
 
   async updateSettings(patch: Partial<AppSettings>): Promise<AppSettings> {
@@ -311,6 +353,54 @@ export class ConfigStore {
     if (credential.length <= 10) return '••••••'
     return `${credential.slice(0, 6)}••••${credential.slice(-4)}`
   }
+}
+
+/** 只接受已知平台与已知凭据字段，避免备份文件写入任意内容 */
+function sanitizeBackupData(data: BackupData): BackupData {
+  if (!data || typeof data !== 'object') throw new Error('备份内容无效')
+
+  const rawSettings = data.settings as Partial<AppSettings> | undefined
+  const settings: AppSettings = {
+    autoRefreshEnabled:
+      typeof rawSettings?.autoRefreshEnabled === 'boolean'
+        ? rawSettings.autoRefreshEnabled
+        : DEFAULT_SETTINGS.autoRefreshEnabled,
+    refreshIntervalSeconds:
+      typeof rawSettings?.refreshIntervalSeconds === 'number' &&
+      Number.isFinite(rawSettings.refreshIntervalSeconds) &&
+      rawSettings.refreshIntervalSeconds > 0
+        ? rawSettings.refreshIntervalSeconds
+        : DEFAULT_SETTINGS.refreshIntervalSeconds,
+    thresholds: {},
+  }
+
+  for (const providerId of PROVIDER_IDS) {
+    const threshold = rawSettings?.thresholds?.[providerId]
+    if (typeof threshold === 'number' && Number.isFinite(threshold) && threshold >= 0) {
+      settings.thresholds[providerId] = threshold
+    }
+  }
+
+  const credentials: BackupData['credentials'] = {}
+  const rawCredentials = data.credentials
+  if (rawCredentials && typeof rawCredentials === 'object') {
+    for (const providerId of PROVIDER_IDS) {
+      const fields = rawCredentials[providerId]
+      if (!fields || typeof fields !== 'object') continue
+
+      const allowedFields = new Set(PROVIDER_META[providerId].credentialFields.map((f) => f.key))
+      const sanitized: ProviderCredential = {}
+      for (const field of allowedFields) {
+        const value = (fields as Record<string, unknown>)[field]
+        if (typeof value === 'string' && value.trim().length > 0) {
+          sanitized[field] = value.trim()
+        }
+      }
+      if (Object.keys(sanitized).length > 0) credentials[providerId] = sanitized
+    }
+  }
+
+  return { settings, credentials }
 }
 
 /** 全局唯一的配置仓库实例 */

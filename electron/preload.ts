@@ -1,4 +1,5 @@
 import { contextBridge, ipcRenderer } from 'electron'
+import type { BackupActionResult } from '../src/shared/backup'
 import type {
   AppConfigView,
   AppSettings,
@@ -21,6 +22,12 @@ const api = {
 
   updateSettings: (patch: Partial<AppSettings>): Promise<AppConfigView> =>
     ipcRenderer.invoke('config:update-settings', patch),
+
+  exportBackup: (password: string): Promise<BackupActionResult> =>
+    ipcRenderer.invoke('config:export-backup', password),
+
+  importBackup: (password: string): Promise<BackupActionResult> =>
+    ipcRenderer.invoke('config:import-backup', password),
 
   refreshBalances: (): Promise<ProviderResult[]> => ipcRenderer.invoke('balances:refresh'),
 

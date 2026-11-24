@@ -16,6 +16,9 @@ release
 coverage
 *.local
 
+# Figma 本地桥接（含会话凭证）
+.figma/
+
 /cypress/videos/
 /cypress/screenshots/
 

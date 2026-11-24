@@ -3,6 +3,7 @@ import kimiLogo from '../assets/providers/kimi.ico'
 import minimaxLogo from '../assets/providers/minimax.ico'
 import mimoLogo from '../assets/providers/mimo.png'
 import qwenLogo from '../assets/providers/qwen.svg'
+import tokenhubLogo from '../assets/providers/tokenhub.svg'
 import zhipuLogo from '../assets/providers/zhipu.png'
 
 import type { ProviderId } from '../shared/provider'
@@ -17,4 +18,5 @@ export const PROVIDER_LOGOS: Record<ProviderId, string> = {
   minimax: minimaxLogo,
   mimo: mimoLogo,
   qwen: qwenLogo,
+  tokenhub: tokenhubLogo,
 }

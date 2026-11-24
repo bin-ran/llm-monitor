@@ -1,3 +1,4 @@
+import type { BackupActionResult } from './shared/backup'
 import type {
   AppConfigView,
   AppSettings,
@@ -12,6 +13,8 @@ export interface ILlmMonitorApi {
   saveCredential(providerId: ProviderId, values: ProviderCredential): Promise<AppConfigView>
   removeCredential(providerId: ProviderId): Promise<AppConfigView>
   updateSettings(patch: Partial<AppSettings>): Promise<AppConfigView>
+  exportBackup(password: string): Promise<BackupActionResult>
+  importBackup(password: string): Promise<BackupActionResult>
   refreshBalances(): Promise<ProviderResult[]>
   refreshProvider(providerId: ProviderId): Promise<ProviderResult>
   openConsole(providerId: ProviderId): Promise<void>

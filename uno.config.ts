@@ -10,11 +10,11 @@ export default defineConfig({
   shortcuts: [
     [
       'btn',
-      'px-4 py-1 rounded inline-block bg-teal-600 text-white cursor-pointer hover:bg-teal-700 disabled:cursor-default disabled:bg-gray-600 disabled:opacity-50',
+      'px-4 py-1 rounded-md inline-block cursor-pointer bg-primary text-on-primary hover:bg-primary-hover disabled:cursor-default disabled:opacity-50',
     ],
     [
       'icon-btn',
-      'text-[0.9em] inline-block cursor-pointer select-none opacity-75 transition duration-200 ease-in-out hover:opacity-100 hover:text-teal-600',
+      'text-[0.9em] inline-block cursor-pointer select-none opacity-75 transition duration-200 ease-in-out hover:opacity-100 hover:text-ink',
     ],
   ],
   // 字体通过 @fontsource 本地引入（src/main.ts），不使用 CDN，保证 CSP 可锁死为 'self'
@@ -22,6 +22,23 @@ export default defineConfig({
     fontFamily: {
       sans: "'DM Sans', ui-sans-serif, system-ui, 'Segoe UI', sans-serif",
       mono: "'DM Mono', ui-monospace, 'Cascadia Code', monospace",
+    },
+    colors: {
+      bg: 'var(--color-background)',
+      surface: 'var(--color-surface)',
+      sec: 'var(--color-surface-secondary)',
+      tertiary: 'var(--color-surface-tertiary)',
+      ink: 'var(--color-text-primary)',
+      sub: 'var(--color-text-secondary)',
+      mute: 'var(--color-text-muted)',
+      line: 'var(--color-border)',
+      primary: 'var(--color-primary)',
+      'primary-hover': 'var(--color-primary-hover)',
+      'on-primary': 'var(--color-primary-foreground)',
+      success: 'var(--color-success)',
+      warning: 'var(--color-warning)',
+      error: 'var(--color-error)',
+      info: 'var(--color-info)',
     },
   },
   presets: [

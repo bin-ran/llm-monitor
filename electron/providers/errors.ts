@@ -13,6 +13,8 @@ const INVALID_CREDENTIAL_PATTERNS = [
   'access key is not found',
   'invalidaccesskeyid',
   'invalidcredentials',
+  'authfailure',
+  'camnoauth',
   '登录态',
   '请重新登录',
   'loginurl',

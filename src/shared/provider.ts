@@ -1,4 +1,12 @@
-export const PROVIDER_IDS = ['deepseek', 'kimi', 'zhipu', 'minimax', 'mimo', 'qwen'] as const
+export const PROVIDER_IDS = [
+  'deepseek',
+  'kimi',
+  'zhipu',
+  'minimax',
+  'mimo',
+  'qwen',
+  'tokenhub',
+] as const
 
 export type ProviderId = (typeof PROVIDER_IDS)[number]
 
@@ -196,6 +204,32 @@ export const PROVIDER_META: Record<ProviderId, ProviderMeta> = {
     loginUrl: '',
     credentialHint:
       '模型 API Key 无法查询余额，需阿里云 RAM 密钥（bssapi:QueryAccountBalance 只读权限）',
+  },
+  tokenhub: {
+    id: 'tokenhub',
+    label: '腾讯 TokenHub',
+    homepage: 'https://console.cloud.tencent.com/tokenhub',
+    currency: CURRENCY.CNY,
+    credentialKind: CREDENTIAL_KIND.ACCESS_KEY,
+    credentialFields: [
+      {
+        key: 'secretId',
+        label: 'SecretId',
+        placeholder: 'AKID...',
+        isSecret: false,
+        isMultiline: false,
+      },
+      {
+        key: 'secretKey',
+        label: 'SecretKey',
+        placeholder: '腾讯云 CAM 密钥',
+        isSecret: true,
+        isMultiline: false,
+      },
+    ],
+    loginUrl: '',
+    credentialHint:
+      '按量付费需腾讯云 CAM 密钥（子账号授予 finance:DescribeAccountBalance，resource *）；查到的是整个腾讯云账户余额',
   },
 }
 

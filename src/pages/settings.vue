@@ -1,348 +1,353 @@
 <template>
-  <div class="mx-auto flex w-full max-w-3xl flex-col gap-3 p-3">
-    <header class="flex items-center gap-3">
-      <div>
-        <h1 class="text-lg font-semibold text-gray-900 dark:text-gray-50">设置</h1>
-        <p class="text-[0.7rem] text-gray-500 dark:text-gray-400">
-          凭据仅保存在本机配置文件，不会同步到任何服务器
-        </p>
-      </div>
-      <RouterLink
-        class="ml-auto rounded-md border border-gray-300 px-2.5 py-1 text-[0.7rem] text-gray-600 transition hover:border-teal-500 hover:text-teal-600 dark:border-gray-700 dark:text-gray-300"
-        to="/"
-      >
-        返回总览
-      </RouterLink>
-    </header>
+  <AppShell>
+    <template #header>
+      <h1 class="text-[24px] font-semibold">平台设置</h1>
+      <p class="mt-1 text-[11px] text-sub">选一家 → 填凭据 → 保存 → 测试</p>
+    </template>
 
-    <section class="rounded-xl border border-gray-200 bg-white p-3 dark:border-gray-800 dark:bg-gray-900">
-      <h2 class="mb-2 text-xs font-semibold text-gray-800 dark:text-gray-100">平台凭据</h2>
-
-      <div class="flex flex-col gap-3">
-        <div
-          v-for="card in store.cards"
-          :key="card.id"
-          class="flex flex-col gap-1.5 border-b border-gray-100 pb-3 last:border-none last:pb-0 dark:border-gray-800"
-        >
-          <div class="flex items-center gap-2">
-            <ProviderIcon :provider-id="card.id" />
-            <span class="text-xs font-medium text-gray-800 dark:text-gray-100">{{ card.label }}</span>
-            <span class="text-[0.7rem] text-gray-500 dark:text-gray-400">
-              {{ card.hasCredential ? `已配置 ${card.credentialPreview}` : '未配置' }}
-            </span>
-            <button
-              class="ml-auto cursor-pointer text-[0.7rem] text-teal-600 transition hover:text-teal-700"
-              @click="onOpenConsole(card.id)"
-            >
-              打开控制台
-            </button>
-          </div>
-
-          <p class="text-[0.65rem] text-gray-400 dark:text-gray-500">{{ metaOf(card.id).credentialHint }}</p>
-
-          <div
-            v-for="field in metaOf(card.id).credentialFields"
-            :key="field.key"
-            class="flex flex-col gap-1"
+    <div class="flex gap-10">
+      <aside class="w-64 shrink-0">
+        <p class="text-[11px] text-sub">平台</p>
+        <div class="mt-3 border-t border-line">
+          <button
+            v-for="providerId in PROVIDER_IDS"
+            :key="providerId"
+            type="button"
+            class="flex w-full items-center gap-3 border-b border-line py-3 text-left transition hover:bg-sec"
+            @click="onSelect(providerId)"
           >
-            <label class="text-xs text-gray-500 dark:text-gray-400" :for="`${card.id}-${field.key}`">
-              {{ field.label }}
-            </label>
-            <div class="flex items-start gap-2">
+            <ProviderIcon :provider-id="providerId" class="!h-6 !w-6 shrink-0" />
+            <span
+              class="truncate text-[12px]"
+              :class="providerId === selectedId ? 'font-semibold text-ink' : 'text-sub'"
+            >
+              {{ metaOf(providerId).label }}
+            </span>
+            <span class="ml-auto text-[10px]" :class="statusClass(providerId)">
+              {{ statusLabel(providerId) }}
+            </span>
+          </button>
+        </div>
+      </aside>
+
+      <section class="min-w-0 flex-1 rounded-lg border border-line bg-surface p-6">
+        <h2 class="text-[24px] font-semibold">{{ metaOf(selectedId).label }}</h2>
+        <p class="mt-1 text-[11px] text-sub">{{ metaOf(selectedId).credentialHint }}</p>
+
+        <div class="mt-6 grid grid-cols-2 gap-6 border-t border-line pt-6">
+          <label v-for="field in metaOf(selectedId).credentialFields" :key="field.key">
+            <span class="text-[10px] text-sub">{{ field.label }}</span>
+            <div class="mt-2 flex items-center gap-2">
               <textarea
                 v-if="field.isMultiline"
-                :id="`${card.id}-${field.key}`"
-                :value="inputValue(card.id, field.key)"
+                :value="inputValue(field.key)"
                 :placeholder="field.placeholder"
-                rows="3"
-                class="min-w-60 flex-1 resize-y rounded-md border border-gray-300 bg-white px-3 py-1.5 font-mono text-xs outline-none transition focus:border-teal-500 dark:border-gray-700 dark:bg-gray-800"
-                @input="onInput(card.id, field.key, $event)"
+                rows="2"
+                class="min-w-0 flex-1 resize-y rounded-md border border-line bg-bg px-3 py-2 font-mono text-[12px] outline-none focus:border-ink"
+                @input="onInput(field.key, $event)"
               />
               <input
                 v-else
-                :id="`${card.id}-${field.key}`"
-                :value="inputValue(card.id, field.key)"
-                :type="isSecretVisible(card.id, field.key) ? 'text' : 'password'"
+                :value="inputValue(field.key)"
+                :type="isSecretVisible(field.key) ? 'text' : 'password'"
                 :placeholder="field.placeholder"
-                class="min-w-60 flex-1 rounded-md border border-gray-300 bg-white px-3 py-1.5 text-sm outline-none transition focus:border-teal-500 dark:border-gray-700 dark:bg-gray-800"
-                @input="onInput(card.id, field.key, $event)"
+                class="min-w-0 flex-1 rounded-md border border-line bg-bg px-3 py-2 font-mono text-[12px] outline-none focus:border-ink"
+                @input="onInput(field.key, $event)"
               />
               <button
                 v-if="field.isSecret"
-                class="cursor-pointer rounded-md border border-gray-300 px-3 py-1.5 text-xs text-gray-600 transition hover:border-teal-500 dark:border-gray-700 dark:text-gray-300"
-                @click="toggleSecret(card.id, field.key)"
+                type="button"
+                class="cursor-pointer text-[10px] text-sub transition hover:text-ink"
+                @click="toggleSecret(field.key)"
               >
-                {{ isSecretVisible(card.id, field.key) ? '隐藏' : '显示' }}
+                {{ isSecretVisible(field.key) ? '隐藏' : '显示' }}
               </button>
             </div>
-          </div>
-
-          <div class="flex flex-wrap items-center gap-2">
-            <button
-              v-if="metaOf(card.id).loginUrl"
-              class="cursor-pointer rounded-md border border-teal-500 px-3 py-1.5 text-xs text-teal-600 transition hover:bg-teal-50 disabled:cursor-default disabled:opacity-50 dark:hover:bg-teal-900/30"
-              :disabled="loginId === card.id"
-              @click="onStartLogin(card.id)"
-            >
-              {{ loginId === card.id ? '等待登录…' : '登录获取' }}
-            </button>
-            <button
-              class="cursor-pointer rounded-md bg-teal-600 px-3 py-1.5 text-xs text-white transition hover:bg-teal-700 disabled:cursor-default disabled:opacity-50"
-              :disabled="savingId === card.id || !isReadyToSave(card.id)"
-              @click="onSaveKey(card.id)"
-            >
-              {{ savingId === card.id ? '保存中…' : '保存' }}
-            </button>
-            <button
-              class="cursor-pointer rounded-md border border-gray-300 px-3 py-1.5 text-xs text-gray-600 transition hover:border-teal-500 hover:text-teal-600 disabled:cursor-default disabled:opacity-50 dark:border-gray-700 dark:text-gray-300"
-              :disabled="testingId === card.id || savingId === card.id"
-              @click="onTestConnection(card.id)"
-            >
-              {{ testingId === card.id ? '测试中…' : '测试连接' }}
-            </button>
-            <button
-              v-if="card.hasCredential"
-              class="cursor-pointer rounded-md border border-red-300 px-3 py-1.5 text-xs text-red-500 transition hover:border-red-500 disabled:cursor-default disabled:opacity-50"
-              :disabled="savingId === card.id"
-              @click="onDeleteKey(card.id)"
-            >
-              删除
-            </button>
-            <span
-              v-if="messages[card.id]"
-              class="text-xs"
-              :class="
-                messageTone[card.id] === 'error'
-                  ? 'text-red-500'
-                  : messageTone[card.id] === 'ok'
-                    ? 'text-emerald-600 dark:text-emerald-400'
-                    : 'text-gray-500 dark:text-gray-400'
-              "
-            >
-              {{ messages[card.id] }}
-            </span>
-          </div>
-
-          <div class="flex items-center gap-2">
-            <label class="text-xs text-gray-500 dark:text-gray-400" :for="`threshold-${card.id}`">
-              余额告警阈值
-            </label>
-            <input
-              :id="`threshold-${card.id}`"
-              :value="thresholdValue(card.id)"
-              type="number"
-              min="0"
-              step="1"
-              placeholder="不告警"
-              class="w-28 rounded-md border border-gray-300 bg-white px-2 py-1 text-xs outline-none transition focus:border-teal-500 dark:border-gray-700 dark:bg-gray-800"
-              @change="onThresholdChange(card.id, $event)"
-            />
-            <span class="text-xs text-gray-500 dark:text-gray-400">低于该金额时弹出系统通知</span>
-          </div>
+          </label>
         </div>
-      </div>
-    </section>
 
-    <section class="rounded-xl border border-gray-200 bg-white p-4 dark:border-gray-800 dark:bg-gray-900">
-      <h2 class="mb-3 text-sm font-semibold text-gray-800 dark:text-gray-100">刷新与存储</h2>
+        <div class="mt-6 flex items-center gap-3 border-t border-line pt-6">
+          <label class="text-[11px] text-sub" for="threshold">告警阈值</label>
+          <input
+            id="threshold"
+            :value="thresholdValue"
+            type="number"
+            min="0"
+            step="1"
+            placeholder="不告警"
+            class="w-24 rounded-md border border-line bg-bg px-3 py-2 font-mono text-[12px] outline-none focus:border-ink"
+            @change="onThresholdChange"
+          />
+          <span class="text-[10px] text-sub">元 · 低于该值时提醒</span>
+        </div>
 
-      <div class="flex flex-wrap items-center gap-4">
-        <label class="flex cursor-pointer items-center gap-2 text-sm text-gray-600 dark:text-gray-300">
-          <input v-model="isAutoRefreshEnabled" type="checkbox" />
-          自动刷新
-        </label>
-        <select
-          :value="store.settings.refreshIntervalSeconds"
-          class="rounded-md border border-gray-300 bg-white px-2 py-1.5 text-sm outline-none transition focus:border-teal-500 dark:border-gray-700 dark:bg-gray-800"
-          @change="onIntervalChange"
+        <div class="mt-6 flex flex-wrap items-center gap-3">
+          <button
+            type="button"
+            class="cursor-pointer rounded-md bg-primary px-4 py-2 text-[12px] font-semibold text-on-primary transition hover:bg-primary-hover disabled:cursor-default disabled:opacity-50"
+            :disabled="isSaving || !isReadyToSave"
+            @click="onSaveKey"
+          >
+            {{ isSaving ? '保存中…' : '保存凭据' }}
+          </button>
+          <button
+            type="button"
+            class="cursor-pointer rounded-md border border-line px-4 py-2 text-[12px] transition hover:bg-sec disabled:cursor-default disabled:opacity-50"
+            :disabled="isTesting || isSaving"
+            @click="onTestConnection"
+          >
+            {{ isTesting ? '测试中…' : '测试连接' }}
+          </button>
+          <button
+            v-if="metaOf(selectedId).loginUrl"
+            type="button"
+            class="cursor-pointer rounded-md border border-line px-4 py-2 text-[12px] transition hover:bg-sec disabled:cursor-default disabled:opacity-50"
+            :disabled="isLoggingIn"
+            @click="onStartLogin"
+          >
+            {{ isLoggingIn ? '等待登录…' : '登录获取' }}
+          </button>
+          <button
+            v-if="cardOf(selectedId)?.hasCredential"
+            type="button"
+            class="cursor-pointer px-2 py-2 text-[12px] text-error transition hover:opacity-70 disabled:cursor-default disabled:opacity-50"
+            :disabled="isSaving"
+            @click="onDeleteKey"
+          >
+            删除凭据
+          </button>
+          <span v-if="message" class="max-w-[420px] truncate text-[11px]" :class="messageClass">
+            {{ message }}
+          </span>
+        </div>
+
+        <button
+          type="button"
+          class="mt-8 cursor-pointer text-[11px] text-sub underline transition hover:text-ink"
+          @click="onOpenConsole"
         >
-          <option v-for="option in intervalOptions" :key="option" :value="option">
-            每 {{ option }} 秒
-          </option>
-        </select>
-      </div>
-
-      <dl class="mt-4 flex flex-col gap-1 text-xs text-gray-500 dark:text-gray-400">
-        <div class="flex gap-2">
-          <dt>配置文件</dt>
-          <dd class="break-all text-gray-700 dark:text-gray-300">{{ store.configPath }}</dd>
-        </div>
-        <div class="flex gap-2">
-          <dt>密钥加密</dt>
-          <dd class="text-gray-700 dark:text-gray-300">
-            {{ store.isEncryptionAvailable ? '系统密钥环已启用' : '系统密钥环不可用，凭据以明文保存' }}
-          </dd>
-        </div>
-      </dl>
-    </section>
-  </div>
+          打开{{ metaOf(selectedId).label }}控制台
+        </button>
+      </section>
+    </div>
+  </AppShell>
 </template>
 
 <script setup lang="ts">
-import { computed, onMounted, reactive, ref } from 'vue'
-import { RouterLink } from 'vue-router'
+import { computed, onMounted, reactive, ref, watch } from 'vue'
+import { useRoute, useRouter } from 'vue-router'
 
+import AppShell from '../components/AppShell.vue'
 import ProviderIcon from '../components/ProviderIcon.vue'
 import {
   PROVIDER_IDS,
   PROVIDER_META,
   PROVIDER_STATUS,
-  REFRESH_INTERVAL_OPTIONS,
   type ProviderCredential,
   type ProviderId,
 } from '../shared/provider'
 import { useProvidersStore } from '../stores/providers'
 import { formatCurrencyUnit } from '../utils/format'
 
+const DEFAULT_PROVIDER: ProviderId = 'tokenhub'
+
 const store = useProvidersStore()
+const route = useRoute()
+const router = useRouter()
 
 const inputs = reactive<Record<string, string>>({})
 const visibleSecrets = reactive<Record<string, boolean>>({})
-const messages = reactive<Record<string, string>>({})
 
-const savingId = ref<ProviderId | null>(null)
-const testingId = ref<ProviderId | null>(null)
-const messageTone = reactive<Record<string, 'ok' | 'error' | 'info'>>({})
-const loginId = ref<ProviderId | null>(null)
+const selectedId = ref<ProviderId>(resolveSelectedId())
+const isSaving = ref(false)
+const isTesting = ref(false)
+const isLoggingIn = ref(false)
+const message = ref('')
+const messageTone = ref<'ok' | 'error' | 'info'>('info')
 
-const intervalOptions = REFRESH_INTERVAL_OPTIONS
+const isReadyToSave = computed(() =>
+  metaOf(selectedId.value).credentialFields.every(
+    (field) => inputValue(field.key).trim().length > 0,
+  ),
+)
 
-const isAutoRefreshEnabled = computed({
-  get: () => store.settings.autoRefreshEnabled,
-  set: (value: boolean) => {
-    void store.saveSettings({ autoRefreshEnabled: value })
-  },
+const thresholdValue = computed<number | ''>(() => store.settings.thresholds[selectedId.value] ?? '')
+
+const messageClass = computed(() => {
+  if (messageTone.value === 'ok') return 'text-success'
+  if (messageTone.value === 'error') return 'text-error'
+  return 'text-sub'
 })
+
+function isProviderId(value: unknown): value is ProviderId {
+  return typeof value === 'string' && (PROVIDER_IDS as readonly string[]).includes(value)
+}
+
+function resolveSelectedId(): ProviderId {
+  const providerId = route.query.provider
+  return isProviderId(providerId) ? providerId : DEFAULT_PROVIDER
+}
 
 function metaOf(providerId: ProviderId) {
   return PROVIDER_META[providerId]
 }
 
-function inputKey(providerId: ProviderId, fieldKey: string): string {
-  return `${providerId}.${fieldKey}`
+function cardOf(providerId: ProviderId) {
+  return store.cards.find((card) => card.id === providerId)
 }
 
-function inputValue(providerId: ProviderId, fieldKey: string): string {
-  return inputs[inputKey(providerId, fieldKey)] ?? ''
+function statusLabel(providerId: ProviderId): string {
+  switch (cardOf(providerId)?.result.status) {
+    case PROVIDER_STATUS.OK:
+      return '正常'
+    case PROVIDER_STATUS.ERROR:
+      return '异常'
+    case PROVIDER_STATUS.INVALID_CREDENTIAL:
+      return '凭证失效'
+    case PROVIDER_STATUS.MISSING_CREDENTIAL:
+      return '未配置'
+    case PROVIDER_STATUS.LOADING:
+      return '查询中'
+    default:
+      return '待查询'
+  }
 }
 
-function isSecretVisible(providerId: ProviderId, fieldKey: string): boolean {
-  return visibleSecrets[inputKey(providerId, fieldKey)] ?? false
+function statusClass(providerId: ProviderId): string {
+  switch (cardOf(providerId)?.result.status) {
+    case PROVIDER_STATUS.OK:
+      return 'text-success'
+    case PROVIDER_STATUS.ERROR:
+    case PROVIDER_STATUS.INVALID_CREDENTIAL:
+      return 'text-error'
+    case PROVIDER_STATUS.MISSING_CREDENTIAL:
+      return 'text-warning'
+    default:
+      return 'text-mute'
+  }
 }
 
-function onInput(providerId: ProviderId, fieldKey: string, event: Event): void {
+function inputKey(fieldKey: string): string {
+  return `${selectedId.value}.${fieldKey}`
+}
+
+function inputValue(fieldKey: string): string {
+  return inputs[inputKey(fieldKey)] ?? ''
+}
+
+function isSecretVisible(fieldKey: string): boolean {
+  return visibleSecrets[inputKey(fieldKey)] ?? false
+}
+
+function onInput(fieldKey: string, event: Event): void {
   const target = event.target as HTMLInputElement | HTMLTextAreaElement
-  inputs[inputKey(providerId, fieldKey)] = target.value
+  inputs[inputKey(fieldKey)] = target.value
 }
 
-function toggleSecret(providerId: ProviderId, fieldKey: string): void {
-  const key = inputKey(providerId, fieldKey)
+function toggleSecret(fieldKey: string): void {
+  const key = inputKey(fieldKey)
   visibleSecrets[key] = !visibleSecrets[key]
 }
 
-function isReadyToSave(providerId: ProviderId): boolean {
-  const fields = metaOf(providerId).credentialFields
-  return fields.every((field) => inputValue(providerId, field.key).trim().length > 0)
+function onSelect(providerId: ProviderId): void {
+  selectedId.value = providerId
+  message.value = ''
+  void router.replace({ query: { provider: providerId } })
 }
 
-function thresholdValue(providerId: ProviderId): number | '' {
-  const threshold = store.settings.thresholds[providerId]
-  return threshold ?? ''
-}
-
-async function onSaveKey(providerId: ProviderId): Promise<void> {
+async function onSaveKey(): Promise<void> {
   const credential: ProviderCredential = {}
 
-  for (const field of metaOf(providerId).credentialFields) {
-    credential[field.key] = inputValue(providerId, field.key).trim()
+  for (const field of metaOf(selectedId.value).credentialFields) {
+    credential[field.key] = inputValue(field.key).trim()
   }
 
-  savingId.value = providerId
+  isSaving.value = true
+  message.value = ''
   try {
-    await store.saveCredential(providerId, credential)
-    messages[providerId] = '已保存'
+    await store.saveCredential(selectedId.value, credential)
+    message.value = '凭据已保存'
+    messageTone.value = 'ok'
   } catch (error) {
-    messages[providerId] = error instanceof Error ? error.message : '保存失败'
+    message.value = error instanceof Error ? error.message : '保存失败'
+    messageTone.value = 'error'
   } finally {
-    savingId.value = null
+    isSaving.value = false
   }
 }
 
-/** 用当前已保存的凭据真实查询一次，直接给出可用余额或错误原因 */
-async function onTestConnection(providerId: ProviderId): Promise<void> {
-  testingId.value = providerId
-  messages[providerId] = ''
-  messageTone[providerId] = 'info'
+async function onTestConnection(): Promise<void> {
+  isTesting.value = true
+  message.value = ''
+  messageTone.value = 'info'
 
   try {
-    const result = await store.refreshOne(providerId)
+    const result = await store.refreshOne(selectedId.value)
 
     if (result.status === PROVIDER_STATUS.OK && result.balance) {
-      messages[providerId] = `连接正常，可用余额 ${result.balance.available.toFixed(2)} ${formatCurrencyUnit(result.balance.currency)}`
-      messageTone[providerId] = 'ok'
+      message.value = `连接正常，可用余额 ${result.balance.available.toFixed(2)} ${formatCurrencyUnit(result.balance.currency)}`
+      messageTone.value = 'ok'
       return
     }
 
-    messages[providerId] = result.errorMessage || '查询失败'
-    messageTone[providerId] = 'error'
+    message.value = result.errorMessage || '查询失败'
+    messageTone.value = 'error'
   } catch (error) {
-    messages[providerId] = error instanceof Error ? error.message : '测试失败'
-    messageTone[providerId] = 'error'
+    message.value = error instanceof Error ? error.message : '测试失败'
+    messageTone.value = 'error'
   } finally {
-    testingId.value = null
+    isTesting.value = false
   }
 }
 
-async function onDeleteKey(providerId: ProviderId): Promise<void> {
-  savingId.value = providerId
+async function onDeleteKey(): Promise<void> {
+  isSaving.value = true
   try {
-    await store.removeCredential(providerId)
-    messages[providerId] = '已删除'
+    await store.removeCredential(selectedId.value)
+    message.value = '凭据已删除'
+    messageTone.value = 'info'
   } finally {
-    savingId.value = null
+    isSaving.value = false
   }
 }
 
-async function onStartLogin(providerId: ProviderId): Promise<void> {
-  loginId.value = providerId
+async function onStartLogin(): Promise<void> {
+  isLoggingIn.value = true
   try {
-    const result = await store.startLogin(providerId)
-    messages[providerId] = result.message
-  } catch (error) {
-    messages[providerId] = error instanceof Error ? error.message : '登录失败'
+    const result = await store.startLogin(selectedId.value)
+    message.value = result.message
+    messageTone.value = result.ok ? 'ok' : 'error'
   } finally {
-    loginId.value = null
+    isLoggingIn.value = false
   }
 }
 
-function onThresholdChange(providerId: ProviderId, event: Event): void {
+function onThresholdChange(event: Event): void {
   const input = event.target as HTMLInputElement
   const value = Number.parseFloat(input.value)
 
   if (!Number.isFinite(value) || value <= 0) {
-    void store.saveSettings({ thresholds: { [providerId]: undefined } })
+    void store.saveSettings({ thresholds: { [selectedId.value]: undefined } })
     input.value = ''
     return
   }
 
-  void store.saveSettings({ thresholds: { [providerId]: value } })
+  void store.saveSettings({ thresholds: { [selectedId.value]: value } })
 }
 
-function onIntervalChange(event: Event): void {
-  const select = event.target as HTMLSelectElement
-  const value = Number.parseInt(select.value, 10)
-  if (!Number.isFinite(value)) return
-  void store.saveSettings({ refreshIntervalSeconds: value })
+function onOpenConsole(): void {
+  store.openConsole(selectedId.value)
 }
 
-function onOpenConsole(providerId: ProviderId): void {
-  store.openConsole(providerId)
-}
+watch(
+  () => route.query.provider,
+  () => {
+    selectedId.value = resolveSelectedId()
+    message.value = ''
+  },
+)
 
 onMounted(async () => {
   await store.init()
-  for (const providerId of PROVIDER_IDS) {
-    messages[providerId] = ''
-  }
 })
 </script>

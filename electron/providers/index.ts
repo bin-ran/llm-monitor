@@ -10,6 +10,7 @@ import { kimiAdapter } from './kimi'
 import { mimoAdapter } from './mimo'
 import { minimaxAdapter } from './minimax'
 import { qwenAdapter } from './qwen'
+import { tokenhubAdapter } from './tokenhub'
 import { zhipuAdapter } from './zhipu'
 import type { ProviderAdapter } from './types'
 
@@ -69,4 +70,5 @@ export const providerRegistry = new ProviderRegistry([
   minimaxAdapter,
   mimoAdapter,
   qwenAdapter,
+  tokenhubAdapter,
 ])

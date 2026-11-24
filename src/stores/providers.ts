@@ -1,5 +1,7 @@
 import { defineStore } from 'pinia'
 import { computed, ref } from 'vue'
+
+import type { BackupActionResult } from '../shared/backup'
 import {
   DEFAULT_SETTINGS,
   PROVIDER_IDS,
@@ -137,6 +139,19 @@ export const useProvidersStore = defineStore('providers', () => {
     applyConfig(await window.llmMonitor.updateSettings(patch))
   }
 
+  async function exportBackup(password: string): Promise<BackupActionResult> {
+    return window.llmMonitor.exportBackup(password)
+  }
+
+  async function importBackup(password: string): Promise<BackupActionResult> {
+    const result = await window.llmMonitor.importBackup(password)
+    if (result.ok) {
+      await init()
+      await refresh()
+    }
+    return result
+  }
+
   async function startLogin(providerId: ProviderId): Promise<LoginResult> {
     const result = await window.llmMonitor.startLogin(providerId)
     await init()
@@ -171,6 +186,8 @@ export const useProvidersStore = defineStore('providers', () => {
     saveCredential,
     removeCredential,
     saveSettings,
+    exportBackup,
+    importBackup,
     startLogin,
     openConsole,
     subscribeBalances,

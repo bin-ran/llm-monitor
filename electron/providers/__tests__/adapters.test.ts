@@ -151,6 +151,8 @@ describe('凭证失效识别', () => {
       '{"base_resp":{"status_code":1000,"status_msg":"biz error"}}',
       '{"code":401,"loginUrl":"https://account.xiaomi.com"}',
       'InvalidAccessKeyId.NotFound',
+      '[TencentCloudSDKError] Code=AuthFailure.SecretIdNotFound, Message=secret id not found',
+      '[TencentCloudSDKError] Code=UnauthorizedOperation.CamNoAuth, Message=no permission',
     ]
 
     for (const message of messages) {
@@ -161,5 +163,10 @@ describe('凭证失效识别', () => {
   it('普通错误不误判为凭证失效', () => {
     expect(isInvalidCredentialError(new Error('请求超时'))).toBe(false)
     expect(isInvalidCredentialError(new Error('HTTP 500'))).toBe(false)
+    expect(
+      isInvalidCredentialError(
+        new Error('腾讯云 CAM 权限不足：请给该子用户授予 finance:trade（resource *）权限'),
+      ),
+    ).toBe(false)
   })
 })
